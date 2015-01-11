@@ -1,17 +1,24 @@
-from distutils.core import setup
+from setuptools import setup
 
 requires = [
-    'SQLAlchemy>=0.8',
+    'SQLAlchemy>=0.9',
     'pyramid>=1.5',
     'zope.sqlalchemy',
 ]
 
+test_requires = [
+    'mock',
+    'nose',
+    'webtest'
+]
 
 setup(
     name = 'seth',
     packages = ['seth'],
     install_requires = requires,
-    version = '0.1',
+    tests_require=test_requires,
+    test_suite = "nose.collector",
+    version = '0.1a',
     description = 'Smart and practical set of utilities for Pyramid framework',
     author = 'jnosal',
     author_email = 'jacek.nosal@outlook.com',
