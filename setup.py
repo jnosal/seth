@@ -1,7 +1,7 @@
 from distutils.core import setup
 
 requires = [
-    'sqlalchemy>=0.9',
+    'SQLAlchemy>=0.8',
     'pyramid>=1.5',
     'zope.sqlalchemy',
 ]
