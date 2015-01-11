@@ -1,9 +1,16 @@
 from distutils.core import setup
 
+requires = [
+    'sqlalchemy>=0.9',
+    'pyramid>=1.5',
+    'zope.sqlalchemy',
+]
+
+
 setup(
     name = 'seth',
     packages = ['seth'],
-    install_requires = ['sqlalchemy>=0.9', 'pyramid>=1.5'],
+    install_requires = requires,
     version = '0.1',
     description = 'Smart and practical set of utilities for Pyramid framework',
     author = 'jnosal',
