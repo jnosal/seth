@@ -74,29 +74,26 @@ class UnitTestBase(BaseTestCase):
         return request
 
 
-class IntegrationTestBase(unittest.TestCase):
+class IntegrationTestBase(BaseTestCase):
 
     def main(self, global_config, **settings):
         config = global_config
         config.add_settings(settings)
-
+        config.include('seth')
         app = config.make_wsgi_app()
         return app
 
+    def extend_app_configuration(self, config):
+        pass
+
     def setUp(self):
-        self.engine = engine_from_config(settings, prefix='sqlalchemy.')
-        config = testing.setUp()
-        app = self.main(config, **settings)
-
+        self.config = testing.setUp()
+        self.extend_app_configuration(self.config)
+        app = self.main(self.config, **settings)
         self.app = TestApp(app)
-        self.connection = connection = self.engine.connect()
-
-        self.session.configure(bind=connection)
-        self.trans = connection.begin()
-
-        Base.metadata.bind = connection
+        self.session = db.get_session()
 
     def tearDown(self):
         testing.tearDown()
-        self.trans.rollback()
+        db.rollback()
         self.session.close()
