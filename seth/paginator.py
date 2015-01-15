@@ -85,10 +85,11 @@ class Pagination(object):
 
 
 def paginate(qs, page=1, per_page=20, **kwargs):
-    labels = kwargs.get('labels', [])
-
     if page < 1:
         raise PaginationException(u"Page has to be grater or equal 1")
+
+    if per_page < 0:
+        raise PaginationException(u"Page has to be grater than 0")
 
     total = int(qs.count())
 
@@ -100,4 +101,4 @@ def paginate(qs, page=1, per_page=20, **kwargs):
     if not items and page != 1:
         return False
 
-    return Pagination(qs, page, per_page, total, items, labels, **kwargs)
+    return Pagination(qs, page, per_page, total, items, **kwargs)

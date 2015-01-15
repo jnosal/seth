@@ -14,13 +14,12 @@ from sqlalchemy.orm import scoped_session
 from sqlalchemy.orm import sessionmaker
 from zope.sqlalchemy import ZopeTransactionExtension
 
+from seth import db
 from seth.tests.models import Base
-
+from seth.db.queries import DeletionFilterQuery
 
 here = os.path.dirname(__file__)
 settings = appconfig('config:' + resource_filename(__name__, 'test.ini'))
-
-DBSession = scoped_session(sessionmaker(extension=ZopeTransactionExtension()))
 
 
 class BaseTestCase(unittest.TestCase):
@@ -28,26 +27,26 @@ class BaseTestCase(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         cls.engine = engine_from_config(settings, prefix='sqlalchemy.')
-        cls.Session = sessionmaker()
+        maker = scoped_session(sessionmaker(
+            extension=ZopeTransactionExtension(),
+            query_cls=DeletionFilterQuery
+        ))
+        db.register_maker(maker)
+        Base.metadata.create_all(cls.engine)
+        Base.metadata.bind = cls.engine
+
+    @classmethod
+    def tearDownClass(cls):
+        Base.metadata.drop_all(cls.engine)
 
     def setUp(self):
         self.config = testing.setUp()
-
-        self.connection = connection = self.engine.connect()
-
-        # begin a non-ORM transaction
-        self.trans = connection.begin()
-
-        # bind an individual Session to the connection
-        self.session = self.Session(bind=connection)
-
-        Base.metadata.bind = connection
+        self.session = db.get_session()
 
     def tearDown(self):
         testing.tearDown()
-        self.trans.rollback()
+        db.rollback()
         self.session.close()
-        self.connection.close()
 
 
 class UnitTestBase(BaseTestCase):
