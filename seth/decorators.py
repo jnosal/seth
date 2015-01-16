@@ -3,8 +3,9 @@ import venusian
 
 class route_path(object):
 
-    def __init__(self, path, *args, **kwargs):
+    def __init__(self, path, attr=None):
         self.path = path
+        self.attr = attr
 
     def register(self, scanner, name, wrapped):
         scanner.config.route_path(wrapped, self.path)
