@@ -10,8 +10,7 @@ from webtest import TestApp
 from sqlalchemy import engine_from_config
 from pyramid import testing
 from paste.deploy.loadwsgi import appconfig
-from sqlalchemy.orm import scoped_session
-from sqlalchemy.orm import sessionmaker
+from sqlalchemy.orm import scoped_session, sessionmaker
 from zope.sqlalchemy import ZopeTransactionExtension
 
 from seth import db
@@ -27,26 +26,35 @@ class BaseTestCase(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         cls.engine = engine_from_config(settings, prefix='sqlalchemy.')
-        maker = scoped_session(sessionmaker(
+        # maker = scoped_session(sessionmaker(
+        #     extension=ZopeTransactionExtension(),
+        #     query_cls=DeletionFilterQuery
+        # ))
+        maker = sessionmaker(
             extension=ZopeTransactionExtension(),
             query_cls=DeletionFilterQuery
-        ))
+        )
+        maker.configure(bind=cls.engine)
         db.register_maker(maker)
-        Base.metadata.create_all(cls.engine)
         Base.metadata.bind = cls.engine
+        Base.metadata.create_all(cls.engine)
 
     @classmethod
     def tearDownClass(cls):
         Base.metadata.drop_all(cls.engine)
 
     def setUp(self):
+        self.connection = self.engine.connect()
+        self.trans = self.connection.begin()
         self.config = testing.setUp()
         self.session = db.get_session()
 
     def tearDown(self):
         testing.tearDown()
-        db.rollback()
         self.session.close()
+        self.trans.rollback()
+        db.rollback()
+        self.connection.close()
 
 
 class UnitTestBase(BaseTestCase):
@@ -87,13 +95,7 @@ class IntegrationTestBase(BaseTestCase):
         pass
 
     def setUp(self):
-        self.config = testing.setUp()
+        super(IntegrationTestBase, self).setUp()
         self.extend_app_configuration(self.config)
         app = self.main(self.config, **settings)
         self.app = TestApp(app)
-        self.session = db.get_session()
-
-    def tearDown(self):
-        testing.tearDown()
-        db.rollback()
-        self.session.close()

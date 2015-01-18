@@ -15,11 +15,12 @@ class PaginationTestCase(UnitTestBase):
         self.assertEqual(paginator.pages, 0)
         self.assertEqual(paginator.total, 0)
 
-    def test_paginatore_two_records_in_db_default_settings(self):
+    def test_paginator_two_records_in_db_default_settings(self):
         model1 = SampleModel()
         model2 = SampleModel()
         self.session.add(model1)
         self.session.add(model2)
+        self.session.flush()
         paginator = SampleModel.manager.paginate()
         self.assertEqual(paginator.has_next, False)
         self.assertEqual(paginator.has_prev, False)
@@ -29,11 +30,12 @@ class PaginationTestCase(UnitTestBase):
         self.assertEqual(paginator.pages, 1)
         self.assertEqual(paginator.total, 2)
 
-    def test_paginatore_two_records_in_db_default_two_pages(self):
+    def test_paginator_two_records_in_db_default_two_pages(self):
         model1 = SampleModel()
         model2 = SampleModel()
         self.session.add(model1)
         self.session.add(model2)
+        self.session.flush()
         paginator = SampleModel.manager.paginate(page=1, per_page=1)
         self.assertEqual(paginator.has_next, True)
         self.assertEqual(paginator.has_prev, False)

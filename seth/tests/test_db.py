@@ -23,6 +23,7 @@ class ManageTestCase(UnitTestBase):
     def test_is_deleted_query(self):
         model = SampleModel()
         self.session.add(model)
+        self.session.flush()
         self.assertEqual(SampleModel.manager.count(), 1)
         model.is_deleted = True
         self.session.flush()
