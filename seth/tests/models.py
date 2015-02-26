@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
 from __future__ import absolute_import
+import sqlalchemy as sa
 from sqlalchemy.ext.declarative import declarative_base, declared_attr
 
 from seth.db.mixins import BaseModelMixin
@@ -11,7 +12,8 @@ Base = declarative_base(cls=BaseModelMixin)
 
 
 class SampleModel(Base):
-    pass
+    int_col = sa.Column(sa.Integer)
+    dec_col = sa.Column(sa.Numeric)
 
 
 class PredefinedManager(BaseManager):

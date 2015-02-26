@@ -13,3 +13,11 @@ class route_path(object):
     def __call__(self, wrapped):
         venusian.attach(wrapped, self.register)
         return wrapped
+
+
+class classproperty(object):
+    def __init__(self, f):
+        self.f = f
+
+    def __get__(self, obj, owner):
+        return self.f(owner)

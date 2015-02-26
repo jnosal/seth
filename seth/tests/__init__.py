@@ -15,8 +15,6 @@ from zope.sqlalchemy import ZopeTransactionExtension
 
 from seth import db
 from seth.tests.models import Base
-from seth.db.queries import DeletionFilterQuery
-
 here = os.path.dirname(__file__)
 settings = appconfig('config:' + resource_filename(__name__, 'test.ini'))
 
@@ -31,8 +29,7 @@ class BaseTestCase(unittest.TestCase):
         #     query_cls=DeletionFilterQuery
         # ))
         maker = sessionmaker(
-            extension=ZopeTransactionExtension(),
-            query_cls=DeletionFilterQuery
+            extension=ZopeTransactionExtension()
         )
         maker.configure(bind=cls.engine)
         db.register_maker(maker)

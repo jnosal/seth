@@ -4,7 +4,7 @@ requires = [
     'SQLAlchemy>=0.9',
     'pyramid>=1.5',
     'zope.sqlalchemy',
-    'colander>=1.0'
+    'marshmallow>=1.0.0'
 ]
 
 test_requires = [

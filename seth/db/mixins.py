@@ -1,16 +1,26 @@
 from datetime import datetime
 from sqlalchemy import Column, Integer, DateTime, Boolean
 from sqlalchemy.ext.declarative import declared_attr
+
+from seth.decorators import classproperty
 from seth.db.managers import BaseManager
 
 
 class BaseModelMixin(object):
-
+    json_included = []
+    json_excluded = []
     __table_args__ = {}
 
     @declared_attr
     def manager(cls):
+        # manager is a class that can have some additional methods
+        # apart from just those provided by sqlalchemy interface
         return BaseManager(model_class=cls)
+
+    @classproperty
+    def query(cls):
+        # proxy to sqlalchemy session.query
+        return cls.manager.query
 
     @declared_attr
     def __tablename__(cls):
@@ -34,4 +44,19 @@ class BaseModelMixin(object):
         return Column(Boolean, default=False)
 
     def __json__(self, request=None):
-        pass
+        data = {}
+        for el, val in vars(self).iteritems():
+            if not el.startswith('_') and not el in self.json_excluded:
+
+                if isinstance(val, BaseModelMixin):
+                    data[el] = val.__json__()
+                else:
+                    data[el] = val
+
+        for key in self.json_included:
+            if hasattr(self, key):
+                data[key] = getattr(self, key)
+        return data
+
+    def to_dict(self):
+        return self.__json__(request=None)
