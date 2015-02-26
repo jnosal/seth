@@ -4,12 +4,15 @@ requires = [
     'SQLAlchemy>=0.9',
     'pyramid>=1.5',
     'zope.sqlalchemy',
+    'colander>=1.0'
 ]
 
 test_requires = [
     'mock',
     'nose',
-    'webtest'
+    'webtest',
+    'xhtml2pdf==0.0.5',
+    'reportlab<3'
 ]
 
 setup(

@@ -26,3 +26,5 @@ logs
 *.swp
 
 MANIFEST
+
+env/
