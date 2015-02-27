@@ -41,6 +41,18 @@ class RestResource(object):
     def patch(self):
         return self.not_allowed()
 
+    def head(self):
+        return self.not_allowed()
+
+    def options(self):
+        return self.not_allowed()
+
+    def trace(self):
+        return self.not_allowed()
+
+    def connect(self):
+        return self.not_allowed()
+
     def not_allowed(self):
         self.request.response.status_int = HTTPMethodNotAllowed.code
         return {

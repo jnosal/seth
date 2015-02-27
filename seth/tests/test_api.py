@@ -40,6 +40,14 @@ class BasicResourceTestCase(IntegrationTestBase):
         r = self.app.delete('/test', expect_errors=True)
         self.assertEqual(r.status_int, 405)
 
+    def test_head_method_is_not_allowed(self):
+        r = self.app.head('/test', expect_errors=True)
+        self.assertEqual(r.status_int, 405)
+
+    def test_options_method_is_not_allowed(self):
+        r = self.app.options('/test', expect_errors=True)
+        self.assertEqual(r.status_int, 405)
+
 
 class BasicResourceWithNotJsonRendererTestCase(IntegrationTestBase):
 
