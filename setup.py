@@ -1,4 +1,4 @@
-from setuptools import setup
+from setuptools import setup, find_packages
 
 requires = [
     'SQLAlchemy>=0.9',
@@ -17,9 +17,11 @@ test_requires = [
 
 setup(
     name = 'seth',
-    packages = ['seth'],
     install_requires = requires,
     tests_require=test_requires,
+    packages=find_packages(),
+    include_package_data=True,
+    zip_safe=False,
     test_suite = "nose.collector",
     version = '0.1a',
     description = 'Smart and practical set of utilities for Pyramid framework',

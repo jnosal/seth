@@ -80,7 +80,6 @@ class IntegrationTestBase(BaseTestCase):
     def main(self, global_config, **settings):
         config = global_config
         config.add_settings(settings)
-        config.include('seth')
         app = config.make_wsgi_app()
         return app
 

@@ -4,7 +4,7 @@ from cStringIO import StringIO
 
 from pyramid.renderers import render
 
-from seth.helpers import UnicodeWriter
+from seth.helpers.unicodecsv import UnicodeWriter
 
 logger = logging.getLogger('seth')
 
