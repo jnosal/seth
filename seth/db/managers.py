@@ -14,7 +14,7 @@ class BaseManager(object):
     def filter_query(self, qs=None, filters=None):
         if not qs:
             qs = self.query
-            
+
         filters = filters if filters else []
         for f in filters:
             qs = qs.filter(f)

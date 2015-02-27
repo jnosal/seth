@@ -1,6 +1,8 @@
 import json
 from decimal import Decimal
 
+from pyramid.renderers import JSONP
+
 from seth.classy import generics
 from seth.tests.models import SampleModel
 from seth.classy.base import RestResource
@@ -37,6 +39,23 @@ class BasicResourceTestCase(IntegrationTestBase):
     def test_delete_method_is_not_allowed(self):
         r = self.app.delete('/test', expect_errors=True)
         self.assertEqual(r.status_int, 405)
+
+
+class BasicResourceWithNotJsonRendererTestCase(IntegrationTestBase):
+
+    def extend_app_configuration(self, config):
+        config.include('seth')
+        config.add_renderer('jsonp', JSONP(param_name='callback'))
+
+        class SampleResource(RestResource):
+            pass
+
+        config.resource_path(SampleResource, '/test', renderer='jsonp')
+
+    def test_get_method_is_not_allowed_with_jsonp(self):
+        r = self.app.get('/test?callback=callback', expect_errors=True)
+        self.assertEqual(r.status_int, 405)
+        self.assertIn('callback', r.body)
 
 
 class BasicListResourceTestCase(IntegrationTestBase):
