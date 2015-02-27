@@ -6,7 +6,8 @@ from seth.decorators import classproperty
 from seth.db.managers import BaseManager
 
 
-class BaseModelMixin(object):
+class PlainModelMixin(object):
+
     json_included = []
     json_excluded = []
     __table_args__ = {}
@@ -31,18 +32,6 @@ class BaseModelMixin(object):
     def id(self):
         return Column(Integer, autoincrement=True, primary_key=True)
 
-    @declared_attr
-    def created_at(self):
-        return Column(DateTime, default=datetime.now, nullable=False)
-
-    @declared_attr
-    def updated_at(self):
-        return Column(DateTime, onupdate=datetime.now, nullable=True)
-
-    @declared_attr
-    def is_deleted(self):
-        return Column(Boolean, default=False)
-
     def __json__(self, request=None):
         data = {}
         for el, val in vars(self).iteritems():
@@ -60,3 +49,18 @@ class BaseModelMixin(object):
 
     def to_dict(self):
         return self.__json__(request=None)
+
+
+class BaseModelMixin(PlainModelMixin):
+
+    @declared_attr
+    def created_at(self):
+        return Column(DateTime, default=datetime.now, nullable=False)
+
+    @declared_attr
+    def updated_at(self):
+        return Column(DateTime, onupdate=datetime.now, nullable=True)
+
+    @declared_attr
+    def is_deleted(self):
+        return Column(Boolean, default=False)
