@@ -1,12 +1,16 @@
-from seth import db
+from seth.classy import mixins
 from seth.paginator import paginate
-from seth.classy.base import RestResource, BaseSchemaMixin
+from seth.classy.base import RestResource
 
 
-class ListReadOnlyApiView(BaseSchemaMixin, RestResource):
-
+class GenericApiView(mixins.BaseSchemaMixin, RestResource):
+    model = None
     paginate = True
     filter_class = None
+    lookup_param = u'id'
+
+    def get_model(self):
+        raise NotImplementedError
 
     def get_queryset(self, *args, **kwargs):
         raise NotImplementedError
@@ -38,82 +42,103 @@ class ListReadOnlyApiView(BaseSchemaMixin, RestResource):
 
         return paginate(qs, page, per_page)
 
-    def get(self):
-        qs = self.get_queryset()
-        qs = self.filter_queryset(qs)
 
-        schema = self._get_schema(many=True)
+class ListReadOnlyApiView(mixins.ListResourceMixin,
+                          GenericApiView):
 
-        if self.paginate:
-            pagination = self.paginate_queryset(qs)
-            results = self.dump_schema(schema, pagination.items)
-            return {
-                'items': results,
-                'extra': {},
-                'meta': {
-                    'total_entries': pagination.total,
-                    'total_pages': pagination.pages,
-                    'page': pagination.page,
-                    'per_page': pagination.per_page,
-                    'previous': pagination.prev_num if pagination.has_prev else None,
-                    'next': pagination.next_num if pagination.has_next else None
-                }
-            }
-
-        results = self.dump_schema(schema, qs)
-        return {
-            'results': results
-        }
-
-
-class DetailApiReadOnlyView(BaseSchemaMixin, RestResource):
-
-    def get_queryset(self, *args, **kwargs):
-        raise NotImplementedError
-
-    def get_id_param(self):
-        return u'id'
+    allowed_methods = ['GET']
 
     def get(self, **kwargs):
-        qs = self.get_queryset()
-        schema = self._get_schema(many=False)
-        id_ = self.request.matchdict[self.get_id_param()]
-
-        obj = qs.get(id_)
-        if not obj:
-            return self.not_found()
-
-        results = self.dump_schema(schema, obj)
-        return {
-            'object': results
-        }
+        return self.list(**kwargs)
 
 
-class CreateView(BaseSchemaMixin, RestResource):
-    model = None
+class DetailApiView(mixins.ReadResourceMixin,
+                    GenericApiView):
 
-    def get_model(self):
-        raise NotImplementedError
+    allowed_methods = ['GET']
 
-    def handle_creation(self, instance):
-        pass
+    def get(self, **kwargs):
+        return self.read(**kwargs)
 
-    def preprocess_serialized_data(self, data):
-        return data
 
-    def post(self):
+class CreateApiView(mixins.CreateResourceMixin,
+                    GenericApiView):
 
-        model_class = self.model if self.model else self.get_model()
-        schema = self._get_schema(many=False)
-        data, errors = self.load_schema(schema, self.request.json_body)
+    allowed_methods = ['POST']
 
-        if not errors:
-            data = self.preprocess_serialized_data(data)
-            instance = model_class(**data)
-            session = db.get_session()
-            session.add(instance)
-            session.flush()
-            self.handle_creation(instance)
-            return self.created()
+    def post(self, **kwargs):
+        return self.create(**kwargs)
 
-        return self.bad_request(errors)
+
+class ListCreateApiView(mixins.CreateResourceMixin,
+                        mixins.ListResourceMixin,
+                        GenericApiView):
+
+    allowed_methods = ['GET', 'POST']
+
+    def get(self, **kwargs):
+        return self.list(**kwargs)
+
+    def post(self, **kwargs):
+        return self.create(**kwargs)
+
+
+class UpdateApiView(mixins.UpdateResourceMixin,
+                    GenericApiView):
+
+    allowed_methods = ['PUT']
+
+    def put(self, **kwargs):
+        return self.update(**kwargs)
+
+
+class PatchApiView(mixins.PatchResourceMixin,
+                   GenericApiView):
+
+    allowed_methods = ['PATCH']
+
+    def patch(self, **kwargs):
+        return self.patch(**kwargs)
+
+
+class PatchAndUpdateApiView(mixins.PatchResourceMixin,
+                            mixins.UpdateResourceMixin,
+                            GenericApiView):
+
+    allowed_methods = ['PATCH', 'PUT']
+
+    def patch(self, **kwargs):
+        return self.patch(**kwargs)
+
+    def put(self, **kwargs):
+        return self.update(**kwargs)
+
+
+class RetrieveUpdateApiView(mixins.ReadResourceMixin,
+                            mixins.PatchResourceMixin,
+                            mixins.UpdateResourceMixin,
+                            GenericApiView):
+
+    allowed_methods = ['GET', 'PATCH', 'PUT']
+
+    def get(self, **kwargs):
+        return self.read(**kwargs)
+
+    def patch(self, **kwargs):
+        return self.patch(**kwargs)
+
+    def put(self, **kwargs):
+        return self.update(**kwargs)
+
+
+class DestroyDetailApiView(mixins.ReadResourceMixin,
+                           mixins.DeleteResourceMixin,
+                           GenericApiView):
+
+    allowed_methods = ['GET', 'DELETE']
+
+    def get(self, **kwargs):
+        return self.read(**kwargs)
+
+    def delete(self, **kwargs):
+        return self.remove(**kwargs)

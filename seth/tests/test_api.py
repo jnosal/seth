@@ -1,4 +1,5 @@
 import json
+from decimal import Decimal
 
 from seth.classy import generics
 from seth.tests.models import SampleModel
@@ -111,7 +112,7 @@ class BaseDetailResourceTestCase(IntegrationTestBase):
     def extend_app_configuration(self, config):
         config.include('seth')
 
-        class SampleDetailResource(generics.DetailApiReadOnlyView):
+        class SampleDetailResource(generics.DetailApiView):
             schema = SampleModelSchema
             paginate = False
 
@@ -138,7 +139,7 @@ class BaseCreateResourceTestCase(IntegrationTestBase):
     def extend_app_configuration(self, config):
         config.include('seth')
 
-        class SampleCreateResource(generics.CreateView):
+        class SampleCreateResource(generics.CreateApiView):
             schema = SampleModelRequiredSchema
             model = SampleModel
 
@@ -156,8 +157,132 @@ class BaseCreateResourceTestCase(IntegrationTestBase):
         }
         r = self.app.post_json('/test_create/', data, expect_errors=True)
         self.assertEqual(r.status_int, 201)
+        json_data = json.loads(r.body)
+        self.assertIn('status', json_data)
+        self.assertEqual(json_data['status'], 'Created')
         self.assertEqual(SampleModel.query.count(), 1)
 
     def test_get_method_is_not_allowed(self):
         r = self.app.get('/test_create/', expect_errors=True)
         self.assertEqual(r.status_int, 405)
+
+
+class BaseListCreateApiViewTestCase(IntegrationTestBase):
+
+    def extend_app_configuration(self, config):
+        config.include('seth')
+
+        class SampleCreateResource(generics.ListCreateApiView):
+            schema = SampleModelRequiredSchema
+            model = SampleModel
+            paginate = False
+
+            def get_queryset(self, *args, **kwargs):
+                return SampleModel.query
+
+        config.resource_path(SampleCreateResource, '/test_create/')
+
+    def test_create_data_is_valid_and_get_list_later(self):
+        data = {
+            'int_col': 1,
+            'dec_col': 2
+        }
+        r = self.app.post_json('/test_create/', data, expect_errors=True)
+        self.assertEqual(r.status_int, 201)
+        r = self.app.post_json('/test_create/', data, expect_errors=True)
+        self.assertEqual(r.status_int, 201)
+        self.assertEqual(SampleModel.query.count(), 2)
+
+        r = self.app.get('/test_create/')
+        json_data = json.loads(r.body)
+        self.assertIn('results', json_data)
+        self.assertEqual(len(json_data['results']), 2)
+
+
+class BaseDestroyDetailApiViewTestCase(IntegrationTestBase):
+
+    def extend_app_configuration(self, config):
+        config.include('seth')
+
+        class SampleDestroyResource(generics.DestroyDetailApiView):
+            schema = SampleModelRequiredSchema
+            model = SampleModel
+
+            def get_queryset(self, *args, **kwargs):
+                return SampleModel.query
+
+        config.resource_path(SampleDestroyResource, '/test_delete/{id}')
+
+    def test_destroy_object_does_not_exist(self):
+        r = self.app.delete('/test_delete/123123', expect_errors=True)
+        self.assertEqual(r.status_int, 404)
+
+    def test_get_model_is_successful(self):
+        instance = SampleModel(int_col=1, dec_col=3)
+        self.session.add(instance)
+        self.session.flush()
+        r = self.app.get('/test_delete/{0}'.format(instance.id), expect_errors=True)
+        self.assertEqual(r.status_int, 200)
+        json_data = json.loads(r.body)
+        self.assertIn('object', json_data)
+
+    def test_delete_model_is_succesfull(self):
+        instance = SampleModel(int_col=1, dec_col=3)
+        self.session.add(instance)
+        self.session.flush()
+        r = self.app.delete('/test_delete/{0}'.format(instance.id), expect_errors=True)
+        self.assertEqual(r.status_int, 200)
+        json_data = json.loads(r.body)
+        self.assertIn('status', json_data)
+        self.assertEqual(json_data['status'], 'Deleted')
+
+
+class BasePatchAndPutApiViewTestCase(IntegrationTestBase):
+
+    def extend_app_configuration(self, config):
+        config.include('seth')
+
+        class SampleUpdateResource(generics.PatchAndUpdateApiView):
+            schema = SampleModelRequiredSchema
+            model = SampleModel
+
+            def get_queryset(self, *args, **kwargs):
+                return SampleModel.query
+
+        config.resource_path(SampleUpdateResource, '/test_update/{id}')
+
+    def test_get_returns_method_not_allowed(self):
+        r = self.app.delete('/test_update/123123', expect_errors=True)
+        self.assertEqual(r.status_int, 405)
+
+    def test_update_model_does_not_exist(self):
+        r = self.app.put('/test_update/12312', {}, expect_errors=True)
+        self.assertEqual(r.status_int, 404)
+
+    def test_update_model_schema_is_not_valid(self):
+        instance = SampleModel(int_col=1, dec_col=3)
+        self.session.add(instance)
+        self.session.flush()
+        r = self.app.put_json('/test_update/{0}'.format(instance.id), {}, expect_errors=True)
+        self.assertEqual(r.status_int, 400)
+        json_data = json.loads(r.body)
+        self.assertIn('errors', json_data)
+
+    def test_update_model_is_succesful(self):
+        instance = SampleModel(int_col=1, dec_col=3)
+        self.session.add(instance)
+        self.session.flush()
+        before = SampleModel.query.get(instance.id)
+        self.assertEqual(before.int_col, 1)
+        self.assertEqual(before.dec_col, Decimal('3.0'))
+        schema_data = {
+            'int_col': 4,
+            'dec_col': 5
+        }
+        r = self.app.put_json('/test_update/{0}'.format(instance.id), schema_data, expect_errors=True)
+        self.assertEqual(r.status_int, 200)
+        json_data = json.loads(r.body)
+        self.assertEqual(json_data['status'], 'Updated')
+        after = SampleModel.query.get(instance.id)
+        self.assertEqual(after.int_col, 4)
+        self.assertEqual(after.dec_col, Decimal('5.0'))

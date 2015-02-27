@@ -24,13 +24,9 @@ class BaseTestCase(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         cls.engine = engine_from_config(settings, prefix='sqlalchemy.')
-        # maker = scoped_session(sessionmaker(
-        #     extension=ZopeTransactionExtension(),
-        #     query_cls=DeletionFilterQuery
-        # ))
-        maker = sessionmaker(
+        maker = scoped_session(sessionmaker(
             extension=ZopeTransactionExtension()
-        )
+        ))
         maker.configure(bind=cls.engine)
         db.register_maker(maker)
         Base.metadata.bind = cls.engine

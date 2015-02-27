@@ -1,11 +1,26 @@
 from pyramid.httpexceptions import HTTPNotFound, HTTPMethodNotAllowed,\
-    HTTPCreated, HTTPBadRequest
+    HTTPBadRequest, HTTPUnauthorized
 
 
 class RestResource(object):
 
+    authenticators = ()
+    allowed_methods = []
+
     def __init__(self, request):
         self.request = request
+
+    def get_authenticators(self):
+        return ()
+
+    def get_view_name(self):
+        return self.__class__.__name__
+
+    def get_view_description(self):
+        return u""
+
+    def get_allowed_methods(self):
+        return self.allowed_methods
 
     @property
     def request_method(self):
@@ -39,10 +54,10 @@ class RestResource(object):
             'error': 'Not found.'
         }
 
-    def created(self):
-        self.request.response.status_int = HTTPCreated.code
+    def not_authorized(self):
+        self.request.response.status_int = HTTPUnauthorized.code
         return {
-            'success': True
+            'error': 'Not authorized.'
         }
 
     def bad_request(self, errors=None):
@@ -51,24 +66,3 @@ class RestResource(object):
         return {
             'errors': errors
         }
-
-
-class BaseSchemaMixin(object):
-    schema = None
-
-    def get_schema_class(self, *args, **kwargs):
-        raise NotImplementedError
-
-    def _get_schema(self, many):
-        if self.schema:
-            return self.schema(many=many)
-        else:
-            return self.get_schema_class()(many=many)
-
-    def dump_schema(self, schema_class, data):
-        # override if schema is handled differently
-        results = schema_class.dump(data)
-        return results.data
-
-    def load_schema(self, schema_class, data):
-        return schema_class.load(data)
