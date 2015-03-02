@@ -1,5 +1,6 @@
 import json
 from decimal import Decimal
+from datetime import datetime
 
 from pyramid.renderers import JSONP
 
@@ -52,6 +53,7 @@ class BasicResourceTestCase(IntegrationTestBase):
 class DefaultResourceTestCase(UnitTestBase):
 
     def test_default_resource_settings(self):
+
         class DefaultResource(RestResource):
             pass
 
@@ -89,9 +91,28 @@ class BasicResourceWithNotJsonRendererTestCase(IntegrationTestBase):
         self.assertIn('callback', r.body)
 
 
+class JsonAdapterTestCase(IntegrationTestBase):
+
+    def extend_app_configuration(self, config):
+        config.include('seth')
+
+        class GenericResource(generics.GenericApiView):
+
+            def get(self, **kwargs):
+                return {'something': Decimal("3.0"), 'something_else': datetime.now()}
+
+
+        config.resource_path(GenericResource, '/test')
+
+    def test_decimal_and_datetme_are_serialized_properly(self):
+        r = self.app.get('/test')
+        self.assertEqual(r.status_int, 200)
+
+
 class GenericApiViewTestCase(UnitTestBase):
 
     def test_default_generic_api_view_setup(self):
+
         class GenericResource(generics.GenericApiView):
             pass
 
@@ -206,6 +227,7 @@ class BaseDetailResourceTestCase(IntegrationTestBase):
         self.session.refresh(instance)
         r = self.app.get('/test_detail/{0}'.format(instance.id), expect_errors=True)
         self.assertEqual(r.status_int, 200)
+        print r.body
 
 
 class BaseCreateResourceTestCase(IntegrationTestBase):
