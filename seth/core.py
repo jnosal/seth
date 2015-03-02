@@ -10,7 +10,7 @@ def _route_path(config, view, path, *args, **kwargs):
     config.add_view(view, route_name=route_name, *args, **kwargs)
 
 
-def _resource_path(config, view, path, *args, **kwargs):
+def _register_resource(config, view, path, *args, **kwargs):
     route_name = getattr(view, '__qualname__', view.__name__)
 
     attr = 'dispatch'
