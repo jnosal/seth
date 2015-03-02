@@ -137,7 +137,8 @@ class DeleteResourceMixin(RetrieveResourceMixin):
         }
 
     def remove(self, **kwargs):
-        instance, _ = self.retrieve()
+        instance, _ = self.retrieve(with_schema=False)
+
         if not instance:
             return self.not_found()
 
@@ -161,7 +162,7 @@ class PatchResourceMixin(RetrieveResourceMixin):
             'status': 'Patched'
         }
 
-    def patch(self, **kwargs):
+    def modify(self, **kwargs):
         instance, schema = self.retrieve()
         if not instance:
             return self.not_found()

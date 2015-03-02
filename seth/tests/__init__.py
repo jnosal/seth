@@ -6,14 +6,14 @@ import unittest
 from pkg_resources import resource_filename
 
 from mock import Mock
-from webtest import TestApp
-from sqlalchemy import engine_from_config
 from pyramid import testing
+from sqlalchemy import engine_from_config
 from paste.deploy.loadwsgi import appconfig
 from sqlalchemy.orm import scoped_session, sessionmaker
 from zope.sqlalchemy import ZopeTransactionExtension
 
 from seth import db
+from seth.tests.base import ExtendedTestApp
 from seth.tests.models import Base
 here = os.path.dirname(__file__)
 settings = appconfig('config:' + resource_filename(__name__, 'test.ini'))
@@ -90,4 +90,4 @@ class IntegrationTestBase(BaseTestCase):
         super(IntegrationTestBase, self).setUp()
         self.extend_app_configuration(self.config)
         app = self.main(self.config, **settings)
-        self.app = TestApp(app)
+        self.app = ExtendedTestApp(app)

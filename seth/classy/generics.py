@@ -98,7 +98,7 @@ class PatchApiView(mixins.PatchResourceMixin,
     allowed_methods = ['PATCH']
 
     def patch(self, **kwargs):
-        return self.patch(**kwargs)
+        return self.modify(**kwargs)
 
 
 class PatchAndUpdateApiView(mixins.PatchResourceMixin,
@@ -108,7 +108,7 @@ class PatchAndUpdateApiView(mixins.PatchResourceMixin,
     allowed_methods = ['PATCH', 'PUT']
 
     def patch(self, **kwargs):
-        return self.patch(**kwargs)
+        return self.modify(**kwargs)
 
     def put(self, **kwargs):
         return self.update(**kwargs)
@@ -125,7 +125,7 @@ class RetrieveUpdateApiView(mixins.ReadResourceMixin,
         return self.read(**kwargs)
 
     def patch(self, **kwargs):
-        return self.patch(**kwargs)
+        return self.modify(**kwargs)
 
     def put(self, **kwargs):
         return self.update(**kwargs)

@@ -21,6 +21,14 @@ class PaginatorTestCase(UnitTestBase):
         p = Pagination(SampleModel.query, 1, 0, total, items)
         self.assertEqual(p.pages, 0)
 
+    def test_iter_pages(self):
+        SampleModel.manager.create(**{})
+        items, total = SampleModel.query.all(), SampleModel.query.count()
+        p = Pagination(SampleModel.query, 1, 1, total, items)
+        self.assertNotEqual(p._jsonify_items(), [])
+        _ = [i for i in p.iter_pages()]
+        self.assertIn(1, _)
+
 
 class PaginationTestCase(UnitTestBase):
 

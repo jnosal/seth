@@ -12,6 +12,9 @@ class PlainModelMixin(object):
     json_excluded = []
     __table_args__ = {}
 
+    def _get_attrs_to_include(self):
+        return self.json_included
+
     @declared_attr
     def manager(cls):
         # manager is a class that can have some additional methods
@@ -42,7 +45,7 @@ class PlainModelMixin(object):
                 else:
                     data[el] = val
 
-        for key in self.json_included:
+        for key in self._get_attrs_to_include():
             if hasattr(self, key):
                 data[key] = getattr(self, key)
         return data

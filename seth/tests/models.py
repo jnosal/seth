@@ -23,7 +23,12 @@ class PredefinedManager(BaseManager):
 
 
 class PredefinedModel(Base):
+    json_included = ['sth']
 
     @declared_attr
     def manager(cls):
         return PredefinedManager(model_class=cls)
+
+    @property
+    def sth(self):
+        return u"sth"

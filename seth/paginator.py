@@ -1,7 +1,6 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 from math import ceil
-from sqlalchemy.util._collections import KeyedTuple
 
 
 class PaginationException(Exception):

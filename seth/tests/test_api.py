@@ -311,6 +311,74 @@ class BaseDestroyDetailApiViewTestCase(IntegrationTestBase):
         self.assertEqual(json_data['status'], 'Deleted')
 
 
+class BasePatchViewTestCase(IntegrationTestBase):
+
+    def extend_app_configuration(self, config):
+        config.include('seth')
+
+        class SamplePatchResource(generics.PatchApiView):
+            schema = SampleModelRequiredSchema
+            model = SampleModel
+
+            def get_queryset(self, *args, **kwargs):
+                return SampleModel.query
+
+        config.resource_path(SamplePatchResource, '/test_simple_patch/{id}')
+
+    def test_simple_patch_is_succesful(self):
+        instance = SampleModel(int_col=1, dec_col=3)
+        self.session.add(instance)
+        self.session.flush()
+        before = SampleModel.query.get(instance.id)
+        self.assertEqual(before.int_col, 1)
+        self.assertEqual(before.dec_col, Decimal('3.0'))
+        schema_data = {
+            'int_col': 4,
+            'dec_col': 5
+        }
+        r = self.app.patch_json('/test_simple_patch/{0}'.format(instance.id), schema_data, expect_errors=True)
+        self.assertEqual(r.status_int, 200)
+        json_data = json.loads(r.body)
+        self.assertEqual(json_data['status'], 'Patched')
+        after = SampleModel.query.get(instance.id)
+        self.assertEqual(after.int_col, 4)
+        self.assertEqual(after.dec_col, Decimal('5.0'))
+
+
+class BaseUpdateViewTestCase(IntegrationTestBase):
+
+    def extend_app_configuration(self, config):
+        config.include('seth')
+
+        class SampleUpdateResource(generics.UpdateApiView):
+            schema = SampleModelRequiredSchema
+            model = SampleModel
+
+            def get_queryset(self, *args, **kwargs):
+                return SampleModel.query
+
+        config.resource_path(SampleUpdateResource, '/test_simple_update/{id}')
+
+    def test_simple_update_is_succesful(self):
+        instance = SampleModel(int_col=1, dec_col=3)
+        self.session.add(instance)
+        self.session.flush()
+        before = SampleModel.query.get(instance.id)
+        self.assertEqual(before.int_col, 1)
+        self.assertEqual(before.dec_col, Decimal('3.0'))
+        schema_data = {
+            'int_col': 4,
+            'dec_col': 5
+        }
+        r = self.app.put_json('/test_simple_update/{0}'.format(instance.id), schema_data, expect_errors=True)
+        self.assertEqual(r.status_int, 200)
+        json_data = json.loads(r.body)
+        self.assertEqual(json_data['status'], 'Updated')
+        after = SampleModel.query.get(instance.id)
+        self.assertEqual(after.int_col, 4)
+        self.assertEqual(after.dec_col, Decimal('5.0'))
+
+
 class BasePatchAndPutApiViewTestCase(IntegrationTestBase):
 
     def extend_app_configuration(self, config):
@@ -323,15 +391,7 @@ class BasePatchAndPutApiViewTestCase(IntegrationTestBase):
             def get_queryset(self, *args, **kwargs):
                 return SampleModel.query
 
-        class SampleUpdateResource(generics.UpdateApiView):
-            schema = SampleModelRequiredSchema
-            model = SampleModel
-
-            def get_queryset(self, *args, **kwargs):
-                return SampleModel.query
-
         config.resource_path(SamplePatchAndUpdateResource, '/test_update/{id}')
-        config.resource_path(SampleUpdateResource, '/test_simple_update/{id}')
 
     def test_get_returns_method_not_allowed(self):
         r = self.app.delete('/test_update/123123', expect_errors=True)
@@ -362,25 +422,6 @@ class BasePatchAndPutApiViewTestCase(IntegrationTestBase):
             'dec_col': 5
         }
         r = self.app.put_json('/test_update/{0}'.format(instance.id), schema_data, expect_errors=True)
-        self.assertEqual(r.status_int, 200)
-        json_data = json.loads(r.body)
-        self.assertEqual(json_data['status'], 'Updated')
-        after = SampleModel.query.get(instance.id)
-        self.assertEqual(after.int_col, 4)
-        self.assertEqual(after.dec_col, Decimal('5.0'))
-
-    def test_simple_update_is_succesful(self):
-        instance = SampleModel(int_col=1, dec_col=3)
-        self.session.add(instance)
-        self.session.flush()
-        before = SampleModel.query.get(instance.id)
-        self.assertEqual(before.int_col, 1)
-        self.assertEqual(before.dec_col, Decimal('3.0'))
-        schema_data = {
-            'int_col': 4,
-            'dec_col': 5
-        }
-        r = self.app.put_json('/test_simple_update/{0}'.format(instance.id), schema_data, expect_errors=True)
         self.assertEqual(r.status_int, 200)
         json_data = json.loads(r.body)
         self.assertEqual(json_data['status'], 'Updated')

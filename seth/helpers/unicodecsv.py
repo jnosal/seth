@@ -10,7 +10,7 @@ def _stringify(s, encoding, errors):
     elif isinstance(s, (int , float)):
         pass
     elif not isinstance(s, str):
-        s=str(s)
+        s = str(s)
     return s
 
 
