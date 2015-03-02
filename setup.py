@@ -12,7 +12,8 @@ test_requires = [
     'nose',
     'webtest',
     'xhtml2pdf==0.0.5',
-    'reportlab<3'
+    'reportlab<3',
+    'coverage'
 ]
 
 setup(
