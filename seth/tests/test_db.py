@@ -108,6 +108,21 @@ class ManagerTestCase(UnitTestBase):
         self.assertEqual(SampleModel.query.count(), 1)
         self.assertEqual(m1, m2)
 
+    def test_persistence_isinstance_raises_ValueError_if_wrong_model_is_provided(self):
+        model = SampleModel()
+
+        class AnotherModelClass(object):
+            pass
+
+        dummy = AnotherModelClass()
+        self.assertEqual(True, SampleModel.manager._isinstance(model))
+        self.assertEqual(
+            False,
+            SampleModel.manager._isinstance(dummy, raise_error=False)
+        )
+        self.assertRaises(
+            ValueError, lambda: SampleModel.manager._isinstance(dummy, raise_error=True)
+        )
 
 class IndependantManagerTestCase(UnitTestBase):
 

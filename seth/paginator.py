@@ -16,19 +16,11 @@ class Pagination(object):
         self.per_page = per_page
         self.total = total
         self.items = items
-        self.labels = kwargs.pop('labels', [])
         self.extra = kwargs
 
     def _jsonify_items(self):
         if not self.items:
             return []
-
-        if isinstance(self.items[0], KeyedTuple):
-            if not self.labels:
-                raise PaginationException(
-                    u"You must provide list of labels"
-                )
-            return [dict(zip(self.labels, _)) for _ in self.items]
 
         return self.items
 

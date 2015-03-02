@@ -21,10 +21,8 @@ class BaseManager(object):
 
     def _preprocess_params(self, kwargs):
         banned_params = []
-
         for param in banned_params:
             kwargs.pop(param, None)
-
         return kwargs
 
     def save(self, model):

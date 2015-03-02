@@ -1,6 +1,25 @@
 from seth.tests import UnitTestBase
 from seth.tests.models import SampleModel
-from seth.paginator import PaginationException
+from seth.paginator import PaginationException, Pagination
+
+
+class PaginatorTestCase(UnitTestBase):
+
+    def test_jsonify_items_when_no_items(self):
+        items, total = SampleModel.query.all(), SampleModel.query.count()
+        p = Pagination(SampleModel.query, 1, 0, total, items)
+        self.assertEqual(p._jsonify_items(), [])
+
+    def test_jsonify_items_when_some_exist(self):
+        SampleModel.manager.create(**{})
+        items, total = SampleModel.query.all(), SampleModel.query.count()
+        p = Pagination(SampleModel.query, 1, 1, total, items)
+        self.assertNotEqual(p._jsonify_items(), [])
+
+    def test_assert_pages_is_zero_when_per_page_is_zero(self):
+        items, total = SampleModel.query.all(), SampleModel.query.count()
+        p = Pagination(SampleModel.query, 1, 0, total, items)
+        self.assertEqual(p.pages, 0)
 
 
 class PaginationTestCase(UnitTestBase):
