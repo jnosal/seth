@@ -1,8 +1,10 @@
+from decimal import Decimal
+
 from seth.tests import UnitTestBase
 from seth.tests.models import SampleModel, PredefinedModel
 
 
-class ManageTestCase(UnitTestBase):
+class ManagerTestCase(UnitTestBase):
 
     def test_basic_manager(self):
         model = SampleModel()
@@ -28,3 +30,63 @@ class ManageTestCase(UnitTestBase):
         self.assertIn('id', data)
         self.assertIn('int_col', data)
         self.assertIn('dec_col', data)
+
+    def test_persistence_save_method(self):
+        model = SampleModel()
+        self.assertEqual(SampleModel.query.count(), 0)
+        SampleModel.manager.save(model)
+        self.assertEqual(SampleModel.query.count(), 1)
+
+    def test_persistence_all_method(self):
+        model = SampleModel()
+        self.assertEqual(len(SampleModel.manager.all()), 0)
+        SampleModel.manager.save(model)
+        self.assertIn(model, SampleModel.manager.all())
+
+    def test_persistence_get_method(self):
+        self.assertEqual(None, SampleModel.manager.get(123123123))
+        SampleModel.manager.save(SampleModel())
+        model = self.session.query(SampleModel).first()
+        self.assertNotEqual(None, SampleModel.manager.get(model.id))
+
+    def test_persistence_get_all_method(self):
+        self.assertEqual([], SampleModel.manager.get_all(*[1, 2]))
+        SampleModel.manager.save(SampleModel())
+        model = self.session.query(SampleModel).first()
+        self.assertIn(model, SampleModel.manager.get_all(*[model.id]))
+
+    def test_persistence_find_method(self):
+        SampleModel.manager.save(SampleModel())
+        model = self.session.query(SampleModel).first()
+        self.assertIn(model, SampleModel.manager.find(id=model.id))
+
+    def test_persistence_first_method(self):
+        model = SampleModel()
+        self.assertEqual(None, SampleModel.manager.first())
+        SampleModel.manager.save(model)
+        self.assertEqual(model, SampleModel.manager.first())
+
+    def test_persistence_new_method(self):
+        self.assertTrue(isinstance(SampleModel.manager.new(), SampleModel))
+
+    def tet_persistence_create_method(self):
+        self.assertEqual(SampleModel.query.count(), 0)
+        SampleModel.manager.create(**{})
+        self.assertEqual(SampleModel.query.count(), 1)
+
+    def test_persistence_update_method(self):
+        SampleModel.manager.create(**{})
+        model = self.session.query(SampleModel).first()
+        self.assertNotEqual(model.int_col, 66)
+        self.assertNotEqual(model.dec_col, Decimal('55.0'))
+        SampleModel.manager.update(model, int_col=66, dec_col=55)
+        model = self.session.query(SampleModel).first()
+        self.assertEqual(model.int_col, 66)
+        self.assertEqual(model.dec_col, Decimal('55.0'))
+
+    def test_persistence_delete_method(self):
+        SampleModel.manager.create(**{})
+        model = self.session.query(SampleModel).first()
+        self.assertEqual(SampleModel.query.count(), 1)
+        SampleModel.manager.delete(model)
+        self.assertEqual(SampleModel.query.count(), 0)
