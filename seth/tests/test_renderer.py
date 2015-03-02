@@ -1,7 +1,16 @@
 from pyramid.renderers import render
 
-from seth.tests import IntegrationTestBase
-from seth.renderers import SethRendererException
+from seth.tests import IntegrationTestBase, UnitTestBase
+from seth.renderers import BaseSethRenderer, SethRendererException
+
+
+class BaseRendererTestCase(UnitTestBase):
+
+    def test_base_renderer_class(self):
+        request = self.get_csrf_request()
+        renderer = BaseSethRenderer()
+        # Test prepare response flow
+        renderer.prepare_response(request, 'text/html', file_name='file.pdf')
 
 
 class CsvRendererTestCase(IntegrationTestBase):
@@ -22,6 +31,12 @@ class CsvRendererTestCase(IntegrationTestBase):
         for el in ['a', 'b', 'c', 'd']:
             self.assertIn(el, body)
 
+    def test_csv_renderer_with_header_is_succesful(self):
+        body = render('csv', {'header': ('d1', 'd2'), 'rows': [('a', 'b'), ('c', 'd')]})
+        assert body
+        for el in ['d1', 'd2', 'a', 'b', 'c', 'd']:
+            self.assertIn(el, body)
+
 
 class PdfRendererTestCase(IntegrationTestBase):
 
@@ -39,3 +54,6 @@ class PdfRendererTestCase(IntegrationTestBase):
     def test_pdf_renderer_is_succesful(self):
         body = render('pdf', {'html': 'aasd'})
         assert body
+
+    def test_wrong_html_raises_pdf_error(self):
+        self.assertRaises(SethRendererException, lambda: render('pdf', {'html': 123123123123}))

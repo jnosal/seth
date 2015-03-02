@@ -22,6 +22,7 @@ class BaseSethRenderer(object):
         value = value if value else {}
         logger.debug(u'Generating File: {0}'.format(file_name))
         logger.debug(u'Generation Context: {0}'.format(value))
+
         if request:
             response = request.response
             disposition = 'attachment;filename="{0}"'.format(file_name)
@@ -56,9 +57,12 @@ class PdfRenderer(BaseSethRenderer):
         else:
             html = value['html']
 
-        pdf = pisa.CreatePDF(
-            StringIO(html.encode('utf-8')), buff, encoding='utf-8'
-        )
+        try:
+            pdf = pisa.CreatePDF(
+                StringIO(html.encode('utf-8')), buff, encoding='utf-8'
+            )
+        except AttributeError:
+            raise SethRendererException(u"Error generating PDF file.")
 
         if pdf.err:
             raise SethRendererException(u"Error generating PDF file.")

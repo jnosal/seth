@@ -25,21 +25,20 @@ class FileUploader(object):
         self.error = u''
 
     def _validate_size(self, size):
-        return size > self.settings['uploader.min_size'] or\
-                size < self.settings['uploader.max_size']
+        return self.settings['uploader.min_size'] <= size <= self.settings['uploader.max_size']
 
     def validate(self, filehandler):
         valid_types = self.settings['uploader.valid_types']
         size = self.get_file_size(filehandler)
 
+        if not self._validate_size(size):
+            self.error = u"Incorrect file size"
+            return False
+
         if not self.as_document:
             if not imghdr.what(filehandler) in valid_types:
                 self.error = u"Incorrect file type"
                 return False
-
-        if not self._validate_size(size):
-            self.error = u"Incorrect size"
-            return False
 
         return True
 
@@ -98,7 +97,7 @@ class FileUploader(object):
                 identifier
             )
             os.remove(file_path)
-        except IOError:
+        except (IOError, OSError):
             return False
 
         return True

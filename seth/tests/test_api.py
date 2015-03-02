@@ -165,13 +165,11 @@ class BasicListResourceTestCase(IntegrationTestBase):
     def test_page_is_default_when_page_param_is_not_an_integer(self):
         r = self.app.get('/test_paginated_list?page=adasdasdasd', expect_errors=True)
         data = json.loads(r.body)
-        print data
         self.assertEqual(data['meta']['page'], 1)
 
     def test_per_page_is_default_when_per_page_param_is_not_an_integer(self):
         r = self.app.get('/test_paginated_list?per_page=adasdasdasd', expect_errors=True)
         data = json.loads(r.body)
-        print data
         self.assertEqual(data['meta']['per_page'], 20)
 
     def test_no_queryset_on_resource_class(self):
