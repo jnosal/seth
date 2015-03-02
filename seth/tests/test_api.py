@@ -99,8 +99,10 @@ class JsonAdapterTestCase(IntegrationTestBase):
         class GenericResource(generics.GenericApiView):
 
             def get(self, **kwargs):
-                return {'something': Decimal("3.0"), 'something_else': datetime.now()}
-
+                return {
+                    'something': Decimal("3.0"),
+                    'something_else': datetime.now()
+                }
 
         config.resource_path(GenericResource, '/test')
 
