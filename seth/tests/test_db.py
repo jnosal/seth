@@ -1,5 +1,6 @@
 from decimal import Decimal
 
+from seth.db.managers import BaseManager
 from seth.tests import UnitTestBase
 from seth.tests.models import SampleModel, PredefinedModel
 
@@ -90,3 +91,15 @@ class ManagerTestCase(UnitTestBase):
         self.assertEqual(SampleModel.query.count(), 1)
         SampleModel.manager.delete(model)
         self.assertEqual(SampleModel.query.count(), 0)
+
+
+class IndependantManagerTestCase(UnitTestBase):
+
+    def test_define_manager(self):
+        class FancyManager(BaseManager):
+            pass
+
+        manager = FancyManager(model_class=SampleModel)
+        self.assertEqual(manager.query.count(), 0)
+        manager.create(**{})
+        self.assertEqual(manager.query.count(), 1)
