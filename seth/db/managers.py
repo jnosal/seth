@@ -1,3 +1,5 @@
+from pyramid.httpexceptions import HTTPNotFound
+
 from seth import db
 from seth.paginator import paginate
 
@@ -30,6 +32,12 @@ class BaseManager(object):
         db.get_session().add(model)
         return model
 
+    def new(self, **kwargs):
+        return self.model_class(**self._preprocess_params(kwargs))
+
+    def create(self, **kwargs):
+        return self.save(self.new(**kwargs))
+
     def all(self):
         return self.model_class.query.all()
 
@@ -39,20 +47,24 @@ class BaseManager(object):
     def get_all(self, *ids):
         return self.model_class.query.filter(self.model_class.id.in_(ids)).all()
 
+    def get_or_404(self, **kwargs):
+        obj = self.model_class.query.filter_by(**kwargs).first()
+        if not obj:
+            raise HTTPNotFound(detail=u"Object doest not exist")
+        return obj
+
+    def get_or_create(self, **kwargs):
+        obj = self.model_class.query.filter_by(**kwargs).first()
+        if obj:
+            return obj
+        else:
+            return self.create(**kwargs)
+
     def find(self, **kwargs):
         return self.model_class.query.filter_by(**kwargs)
 
     def first(self, **kwargs):
         return self.find(**kwargs).first()
-
-    def get_or_404(self, id):
-        return self.model_class.query.get_or_404(id)
-
-    def new(self, **kwargs):
-        return self.model_class(**self._preprocess_params(kwargs))
-
-    def create(self, **kwargs):
-        return self.save(self.new(**kwargs))
 
     def update(self, model, **kwargs):
         self._isinstance(model)

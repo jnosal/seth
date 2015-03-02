@@ -1,5 +1,7 @@
 from decimal import Decimal
 
+from pyramid.httpexceptions import HTTPNotFound
+
 from seth.db.managers import BaseManager
 from seth.tests import UnitTestBase
 from seth.tests.models import SampleModel, PredefinedModel
@@ -91,6 +93,20 @@ class ManagerTestCase(UnitTestBase):
         self.assertEqual(SampleModel.query.count(), 1)
         SampleModel.manager.delete(model)
         self.assertEqual(SampleModel.query.count(), 0)
+
+    def test_persistence_get_or_404_method(self):
+        self.assertRaises(HTTPNotFound, lambda: SampleModel.manager.get_or_404(id=11231))
+        SampleModel.manager.create(**{})
+        model = self.session.query(SampleModel).first()
+        self.assertEqual(model, SampleModel.manager.get_or_404(id=model.id))
+
+    def test_persistence_get_or_create_method(self):
+        self.assertEqual(SampleModel.query.count(), 0)
+        m1 = SampleModel.manager.get_or_create(id=123123)
+        self.assertEqual(SampleModel.query.count(), 1)
+        m2 = SampleModel.manager.get_or_create(id=123123)
+        self.assertEqual(SampleModel.query.count(), 1)
+        self.assertEqual(m1, m2)
 
 
 class IndependantManagerTestCase(UnitTestBase):
