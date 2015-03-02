@@ -325,6 +325,19 @@ class BasePatchViewTestCase(IntegrationTestBase):
 
         config.resource_path(SamplePatchResource, '/test_simple_patch/{id}')
 
+    def test_patch_model_does_not_exist(self):
+        r = self.app.patch_json('/test_simple_patch/12312', {}, expect_errors=True)
+        self.assertEqual(r.status_int, 404)
+
+    def test_patch_model_schema_is_not_valid(self):
+        instance = SampleModel(int_col=1, dec_col=3)
+        self.session.add(instance)
+        self.session.flush()
+        r = self.app.patch_json('/test_simple_patch/{0}'.format(instance.id), {}, expect_errors=True)
+        self.assertEqual(r.status_int, 400)
+        json_data = json.loads(r.body)
+        self.assertIn('errors', json_data)
+
     def test_simple_patch_is_succesful(self):
         instance = SampleModel(int_col=1, dec_col=3)
         self.session.add(instance)
@@ -358,6 +371,10 @@ class BaseUpdateViewTestCase(IntegrationTestBase):
                 return SampleModel.query
 
         config.resource_path(SampleUpdateResource, '/test_simple_update/{id}')
+
+    def test_update_model_does_not_exist(self):
+        r = self.app.put_json('/test_simple_update/12312', {}, expect_errors=True)
+        self.assertEqual(r.status_int, 404)
 
     def test_simple_update_is_succesful(self):
         instance = SampleModel(int_col=1, dec_col=3)

@@ -6,6 +6,10 @@ class RestResource(object):
 
     authenticators = ()
     allowed_methods = []
+    dispatchable_methods = [
+        'GET', 'POST', 'PUT', 'DELETE', 'PATCH',
+        'CONNECT', 'TRACE', 'HEAD', 'OPTIONS'
+    ]
 
     def __init__(self, request):
         self.request = request
@@ -26,31 +30,39 @@ class RestResource(object):
     def request_method(self):
         return self.request.method
 
-    def get(self):
+    def dispatch(self, **kwargs):
+        if self.request_method in self.dispatchable_methods:
+
+            attr = self.request_method.lower()
+            return getattr(self, attr)(**kwargs)
+
         return self.not_allowed()
 
-    def post(self):
+    def get(self, **kwargs):
         return self.not_allowed()
 
-    def put(self):
+    def post(self, **kwargs):
         return self.not_allowed()
 
-    def delete(self):
+    def put(self, **kwargs):
         return self.not_allowed()
 
-    def patch(self):
+    def delete(self, **kwargs):
         return self.not_allowed()
 
-    def head(self):
+    def patch(self, **kwargs):
         return self.not_allowed()
 
-    def options(self):
+    def head(self, **kwargs):
         return self.not_allowed()
 
-    def trace(self):
+    def options(self, **kwargs):
         return self.not_allowed()
 
-    def connect(self):
+    def trace(self, **kwargs):
+        return self.not_allowed()
+
+    def connect(self, **kwargs):
         return self.not_allowed()
 
     def not_allowed(self):
