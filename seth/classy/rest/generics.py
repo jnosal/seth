@@ -122,7 +122,6 @@ class RetrieveUpdateApiView(mixins.ReadResourceMixin,
     allowed_methods = ['GET', 'PATCH', 'PUT']
 
     def get(self, **kwargs):
-        print "ADDA"
         return self.read(**kwargs)
 
     def patch(self, **kwargs):

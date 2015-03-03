@@ -1,0 +1,155 @@
+import decimal
+import datetime
+
+
+class Filter(object):
+    lookup = ''
+
+    def __init__(self, name=None, required=False, lookup=None, **kwargs):
+        self.name = name
+        self.required = required
+        self.lookup = lookup if lookup else self.lookup
+        assert self.lookup
+
+    def prepare_value(self, value):
+        return value
+
+    def filter(self, model, qs, param, value):
+        if not value:
+            return qs
+        try:
+            value = self.prepare_value(value)
+        except ValueError:
+            return qs
+
+        try:
+            # Get sqlalchemy InstrumentedAttribute
+            column = getattr(model, param)
+            # Get column attribute to filter against
+            f = getattr(column, self.lookup)(value)
+            return qs.filter(f)
+        except AttributeError:
+            return qs
+
+
+
+class IntegerFilter(Filter):
+    lookup = '__eq__'
+
+    def prepare_value(self, value):
+        return int(value)
+
+
+class FloatFilter(Filter):
+    lookup = '__eq__'
+
+    def prepare_value(self, value):
+        return float(value)
+
+
+class DecimalFilter(Filter):
+    lookup = '__eq__'
+
+    def prepare_value(self, value):
+        return decimal.Decimal(value)
+
+
+class CharFilter(Filter):
+    lookup = 'like'
+
+
+class BaseDateTimeFilter(Filter):
+    lookup = '__eq__'
+    date_fmt = None
+
+    def __init__(self, name=None, required=False, lookup=None, **kwargs):
+        super(BaseDateTimeFilter, self).__init__(name, required, lookup, **kwargs)
+        assert self.date_fmt
+
+
+class DateTimeFilter(BaseDateTimeFilter):
+    date_fmt = '%Y-%m-%d %H:%M:%S'
+
+    def prepare_value(self, value):
+        return datetime.datetime.strptime(value, self.date_fmt)
+
+
+class DateFilter(BaseDateTimeFilter):
+    date_fmt = '%Y-%m-%d'
+
+    def prepare_value(self, value):
+        return datetime.datetime.strptime(value, self.date_fmt).date()
+
+
+class TimeFilter(BaseDateTimeFilter):
+    date_fmt = '%H:%M:%S'
+
+    def prepare_value(self, value):
+        return datetime.datetime.strptime(value, self.date_fmt).time()
+
+
+class FilterFactoryMeta(type):
+    """
+        Creates filters attribute on FilterFactory class which represents
+        param <-> filter map
+    """
+    def __new__(cls, name, bases, attrs):
+        new_attrs = attrs.copy()
+        new_attrs['filters'] = {}
+
+        for (el, val) in attrs.iteritems():
+            if isinstance(val, Filter):
+                filter_name = val.name if val.name else el
+                new_attrs['filters'][filter_name] = val
+
+        return super(FilterFactoryMeta, cls).__new__(cls, name, bases, new_attrs)
+
+
+class BaseFilterFactory(object):
+    model = None
+
+    def __init__(self, qs, *args, **kwargs):
+        assert self.model
+        self.qs = qs
+
+    def get_q_param(self, req):
+        return req.params.get('q', None)
+
+    def process_q_filter(self, req, q):
+        pass
+
+    def get_sort_by_and_order(self, request):
+        sort_by = request.params.get('sort_by', '')
+        sort_by = sort_by.split(',', 1)[0]
+
+        order = request.params.get('order', 'asc')
+
+        if not order in ['asc', 'desc']:
+            order = None
+
+        return sort_by, order
+
+    def process_sort_by_and_order(self, request, sort_by, order):
+        self.qs = self.qs.order_by("%s %s" % (sort_by, order))
+
+    def apply(self, request, *args, **kwargs):
+        if not self.filters:
+            return self.qs
+
+        for (name, field) in self.filters.iteritems():
+            value = request.params.get(name, None)
+            self.qs = field.filter(self.model, self.qs, name, value)
+
+        q = self.get_q_param(request)
+        if q:
+            self.process_q_filter(request, q)
+
+        sort_by, order = self.get_sort_by_and_order(request)
+        if sort_by and order:
+            self.process_sort_by_and_order(request, sort_by, order)
+
+        return self.qs
+
+
+class FilterFactory(BaseFilterFactory):
+    __metaclass__ = FilterFactoryMeta
