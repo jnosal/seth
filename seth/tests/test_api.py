@@ -493,7 +493,7 @@ class BaseRetrieveUpdateApiView(IntegrationTestBase):
             def get_queryset(self, *args, **kwargs):
                 return SampleModel.query
 
-        config.resource_path(SamplePatchAndUpdateResource, '/test_retrieve/{id}')
+        config.register_resource(SamplePatchAndUpdateResource, '/test_retrieve/{id}')
 
     def test_get_returns_doest_not_exist(self):
         r = self.app.get('/test_retrieve/123123', expect_errors=True)
