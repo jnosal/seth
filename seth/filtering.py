@@ -32,7 +32,6 @@ class Filter(object):
             return qs
 
 
-
 class IntegerFilter(Filter):
     lookup = '__eq__'
 

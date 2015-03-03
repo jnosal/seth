@@ -4,6 +4,7 @@ from datetime import datetime
 
 from pyramid.renderers import JSONP
 
+from seth import filtering
 from seth.classy.rest import generics
 from seth.tests.models import SampleModel
 from seth.classy.rest.base import RestResource
@@ -147,6 +148,20 @@ class BasicListResourceTestCase(IntegrationTestBase):
 
         config.register_resource(SampleListResource, '/test_list')
 
+        class SampleModelFilter(filtering.FilterFactory):
+            model = SampleModel
+            int_col = filtering.IntegerFilter()
+
+        class SampleListResourceWithFilter(generics.ListReadOnlyApiView):
+            schema = SampleModelSchema
+            paginate = False
+            filter_class = SampleModelFilter
+
+            def get_queryset(self, *args, **kwargs):
+                return SampleModel.query
+
+        config.register_resource(SampleListResourceWithFilter, '/test_filter_list')
+
         class SampleListPaginatedResource(generics.ListReadOnlyApiView):
             schema = SampleModelSchema
             paginate = True
@@ -191,6 +206,16 @@ class BasicListResourceTestCase(IntegrationTestBase):
         r = self.app.get('/test_paginated_list', expect_errors=True)
         data = json.loads(r.body)
         self.assertEqual(len(data['items']), 1)
+
+    def test_filter_list_db_is_not_empty(self):
+        self.session.add(SampleModel(int_col=1, dec_col=3))
+        self.session.flush()
+        r = self.app.get('/test_filter_list?int_col=1', expect_errors=True)
+        data = json.loads(r.body)
+        self.assertEqual(len(data['results']), 1)
+        r = self.app.get('/test_filter_list?int_col=2', expect_errors=True)
+        data = json.loads(r.body)
+        self.assertEqual(len(data['results']), 0)
 
     def test_page_is_default_when_page_param_is_not_an_integer(self):
         r = self.app.get('/test_paginated_list?page=adasdasdasd', expect_errors=True)

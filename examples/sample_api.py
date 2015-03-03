@@ -1,6 +1,9 @@
 from pyramid.config import Configurator
 from wsgiref.simple_server import make_server
-from sqlalchemy import engine_from_config
+
+import sqlalchemy as sa
+
+from sqlalchemy import engine_from_config, Column, String
 from sqlalchemy.orm import scoped_session, sessionmaker
 from sqlalchemy.ext.declarative.api import declarative_base
 from zope.sqlalchemy import ZopeTransactionExtension
@@ -8,6 +11,7 @@ from zope.sqlalchemy import ZopeTransactionExtension
 from marshmallow import Schema, fields
 
 from seth import db
+from seth import filtering
 from seth.classy.rest import generics
 from seth.db.mixins import BaseModelMixin
 
@@ -17,7 +21,13 @@ Base = declarative_base(cls=BaseModelMixin)
 
 # Basic model definition
 class SuperModel(Base):
-    pass
+    string_column = sa.Column(sa.String(512))
+
+
+# Define model filter
+class SuperModelFilters(filtering.FilterFactory):
+    model = SuperModel
+    string_column = filtering.CharFilter()
 
 
 # Basic schema definition - BaseModelMixin predefines four fields:
@@ -27,11 +37,13 @@ class SuperModelSchema(Schema):
     is_deleted = fields.Boolean()
     created_at = fields.DateTime()
     updated_at = fields.DateTime()
+    string_column = fields.String()
 
 
 # Sample Model Api View
 class SampleModelApiView(generics.ListReadOnlyApiView):
     schema = SuperModelSchema
+    filter_class = SuperModelFilters
     paginate = True
 
     def get_queryset(self, *args, **kwargs):
@@ -41,6 +53,7 @@ class SampleModelApiView(generics.ListReadOnlyApiView):
 # Sample Model Api View without pagination
 class SampleModelNoPaginateApiView(generics.ListReadOnlyApiView):
     schema = SuperModelSchema
+    filter_class = SuperModelFilters
     paginate = False
 
     def get_queryset(self, *args, **kwargs):
@@ -73,8 +86,8 @@ if __name__ == '__main__':
 
     # create two blank models
     session = db.get_session()
-    session.add(SuperModel())
-    session.add(SuperModel())
+    session.add(SuperModel(**{'string_column': 'a'}))
+    session.add(SuperModel(**{'string_column': 'b'}))
     db.commit()
 
     # add seth and register resources
