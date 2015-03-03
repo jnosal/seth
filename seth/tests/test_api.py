@@ -19,7 +19,7 @@ class BasicResourceTestCase(IntegrationTestBase):
         class SampleResource(RestResource):
             pass
 
-        config.resource_path(SampleResource, '/test')
+        config.register_resource(SampleResource, '/test')
 
     def test_get_method_is_not_allowed(self):
         r = self.app.get('/test', expect_errors=True)
@@ -90,7 +90,7 @@ class BasicResourceWithNotJsonRendererTestCase(IntegrationTestBase):
         class SampleResource(RestResource):
             pass
 
-        config.resource_path(SampleResource, '/test', renderer='jsonp')
+        config.register_resource(SampleResource, '/test', renderer='jsonp')
 
     def test_get_method_is_not_allowed_with_jsonp(self):
         r = self.app.get('/test?callback=callback', expect_errors=True)
@@ -111,7 +111,7 @@ class JsonAdapterTestCase(IntegrationTestBase):
                     'something_else': datetime.now()
                 }
 
-        config.resource_path(GenericResource, '/test')
+        config.register_resource(GenericResource, '/test')
 
     def test_decimal_and_datetme_are_serialized_properly(self):
         r = self.app.get('/test')
@@ -145,7 +145,7 @@ class BasicListResourceTestCase(IntegrationTestBase):
             def get_queryset(self, *args, **kwargs):
                 return SampleModel.query
 
-        config.resource_path(SampleListResource, '/test_list')
+        config.register_resource(SampleListResource, '/test_list')
 
         class SampleListPaginatedResource(generics.ListReadOnlyApiView):
             schema = SampleModelSchema
@@ -154,18 +154,18 @@ class BasicListResourceTestCase(IntegrationTestBase):
             def get_queryset(self, *args, **kwargs):
                 return SampleModel.query
 
-        config.resource_path(SampleListPaginatedResource, '/test_paginated_list')
+        config.register_resource(SampleListPaginatedResource, '/test_paginated_list')
 
         class NoQuerysetResource(generics.ListReadOnlyApiView):
             schema = SampleModelSchema
 
-        config.resource_path(NoQuerysetResource, '/no_query')
+        config.register_resource(NoQuerysetResource, '/no_query')
 
         class NoSchemaResource(generics.ListReadOnlyApiView):
             def get_queryset(self, *args, **kwargs):
                 return SampleModel.query
 
-        config.resource_path(NoSchemaResource, '/no_schema')
+        config.register_resource(NoSchemaResource, '/no_schema')
 
     def test_get_list_no_model_exists(self):
         r = self.app.get('/test_list', expect_errors=True)
@@ -223,7 +223,7 @@ class BaseDetailResourceTestCase(IntegrationTestBase):
             def get_queryset(self, *args, **kwargs):
                 return SampleModel.query
 
-        config.resource_path(SampleDetailResource, '/test_detail/{id}')
+        config.register_resource(SampleDetailResource, '/test_detail/{id}')
 
     def test_get_list_non_existang_id(self):
         r = self.app.get('/test_detail/126361287361278', expect_errors=True)
@@ -247,7 +247,7 @@ class BaseCreateResourceTestCase(IntegrationTestBase):
             schema = SampleModelRequiredSchema
             model = SampleModel
 
-        config.resource_path(SampleCreateResource, '/test_create/')
+        config.register_resource(SampleCreateResource, '/test_create/')
 
     def test_create_not_all_data(self):
         r = self.app.post_json('/test_create/', {}, expect_errors=True)
@@ -284,7 +284,7 @@ class BaseListCreateApiViewTestCase(IntegrationTestBase):
             def get_queryset(self, *args, **kwargs):
                 return SampleModel.query
 
-        config.resource_path(SampleCreateResource, '/test_create/')
+        config.register_resource(SampleCreateResource, '/test_create/')
 
     def test_create_data_is_valid_and_get_list_later(self):
         data = {
@@ -315,7 +315,7 @@ class BaseDestroyDetailApiViewTestCase(IntegrationTestBase):
             def get_queryset(self, *args, **kwargs):
                 return SampleModel.query
 
-        config.resource_path(SampleDestroyResource, '/test_delete/{id}')
+        config.register_resource(SampleDestroyResource, '/test_delete/{id}')
 
     def test_destroy_object_does_not_exist(self):
         r = self.app.delete('/test_delete/123123', expect_errors=True)
@@ -353,7 +353,7 @@ class BasePatchViewTestCase(IntegrationTestBase):
             def get_queryset(self, *args, **kwargs):
                 return SampleModel.query
 
-        config.resource_path(SamplePatchResource, '/test_simple_patch/{id}')
+        config.register_resource(SamplePatchResource, '/test_simple_patch/{id}')
 
     def test_patch_model_does_not_exist(self):
         r = self.app.patch_json('/test_simple_patch/12312', {}, expect_errors=True)
@@ -400,7 +400,7 @@ class BaseUpdateViewTestCase(IntegrationTestBase):
             def get_queryset(self, *args, **kwargs):
                 return SampleModel.query
 
-        config.resource_path(SampleUpdateResource, '/test_simple_update/{id}')
+        config.register_resource(SampleUpdateResource, '/test_simple_update/{id}')
 
     def test_update_model_does_not_exist(self):
         r = self.app.put_json('/test_simple_update/12312', {}, expect_errors=True)
@@ -438,7 +438,7 @@ class BasePatchAndUpdateApiViewTestCase(IntegrationTestBase):
             def get_queryset(self, *args, **kwargs):
                 return SampleModel.query
 
-        config.resource_path(SamplePatchAndUpdateResource, '/test_update/{id}')
+        config.register_resource(SamplePatchAndUpdateResource, '/test_update/{id}')
 
     def test_get_returns_method_not_allowed(self):
         r = self.app.get('/test_update/123123', expect_errors=True)

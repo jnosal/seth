@@ -79,9 +79,9 @@ if __name__ == '__main__':
 
     # add seth and register resources
     config.include('seth')
-    config.resource_path(SampleApiView, '/test/')
-    config.resource_path(SampleModelApiView, '/test_pager/')
-    config.resource_path(SampleModelNoPaginateApiView, '/test_no_pager/')
+    config.register_resource(SampleApiView, '/test/')
+    config.register_resource(SampleModelApiView, '/test_pager/')
+    config.register_resource(SampleModelNoPaginateApiView, '/test_no_pager/')
 
     app = config.make_wsgi_app()
     server = make_server('0.0.0.0', 6543, app)
