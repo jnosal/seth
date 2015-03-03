@@ -93,6 +93,52 @@ class IntegerFilterTestCase(BaseFilterTestCase):
         self.assertEqual(filtered_qs.count(), 0)
 
 
+class BooleanFilterTestCase(BaseFilterTestCase):
+
+    def get_factory(self, qs):
+        class SimpleFactory(filtering.FilterFactory):
+            model = SampleModel
+            bool_col = filtering.BooleanFilter()
+
+        return SimpleFactory(qs=qs)
+
+    def test_value_is_empty(self):
+        qs = SampleModel.query
+        factory = self.get_factory(qs=qs)
+        self.assertEqual(factory.apply(self.freq({})), qs)
+
+    def test_find_models(self):
+        SampleModel.manager.create(bool_col=True)
+        SampleModel.manager.create(bool_col=False)
+        qs = SampleModel.query
+        factory = self.get_factory(qs=qs)
+
+        filtered_qs = factory.apply(self.freq({'bool_col': None}))
+        self.assertEqual(filtered_qs.count(), 2)
+
+        filtered_qs = factory.apply(self.freq({'bool_col': ''}))
+        self.assertEqual(filtered_qs.count(), 2)
+
+        filtered_qs = factory.apply(self.freq({'bool_col': 'true'}))
+        self.assertEqual(filtered_qs.count(), 1)
+
+        filtered_qs = factory.apply(self.freq({'bool_col': 'True'}))
+        self.assertEqual(filtered_qs.count(), 1)
+
+        filtered_qs = factory.apply(self.freq({'bool_col': True}))
+        self.assertEqual(filtered_qs.count(), 1)
+
+        filtered_qs = factory.apply(self.freq({'bool_col': 'false'}))
+        self.assertEqual(filtered_qs.count(), 1)
+
+        filtered_qs = factory.apply(self.freq({'bool_col': 'False'}))
+        self.assertEqual(filtered_qs.count(), 1)
+
+        self.assertRaises(AttributeError, lambda: factory.apply(self.freq({'bool_col': '@@@'})))
+        self.assertRaises(AttributeError, lambda: factory.apply(self.freq({'bool_col': 1})))
+        self.assertRaises(AttributeError, lambda: factory.apply(self.freq({'bool_col': 0})))
+
+
 class CharFilterTestCase(BaseFilterTestCase):
 
     def get_factory(self, qs):

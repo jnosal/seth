@@ -27,7 +27,7 @@ class Filter(object):
         return value
 
     def filter(self, model, qs, param, value):
-        if not value:
+        if value in [(), [], {}, '', None]:
             return qs
 
         value = self.prepare_value(value)
@@ -39,6 +39,23 @@ class Filter(object):
 
         f = getattr(column, self.lookup)(lparam.get_lookup())
         return qs.filter(f)
+
+
+class BooleanFilter(Filter):
+    lookup = '__eq__'
+
+    def prepare_value(self, value):
+        if isinstance(value, bool):
+            return value
+
+        value_map = {
+            'true': True,
+            'false': False,
+        }
+        if isinstance(value, str) and value.lower() in value_map:
+            return value_map.get(value.lower(), bool(value))
+
+        raise AttributeError
 
 
 class IntegerFilter(Filter):
