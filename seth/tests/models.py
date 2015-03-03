@@ -14,6 +14,7 @@ Base = declarative_base(cls=BaseModelMixin)
 class SampleModel(Base):
     int_col = sa.Column(sa.Integer)
     dec_col = sa.Column(sa.Numeric)
+    str_col = sa.Column(sa.String)
 
 
 class PredefinedManager(BaseManager):

@@ -2,6 +2,18 @@ import decimal
 import datetime
 
 
+class LookupParam(object):
+
+    def __init__(self, name, value):
+        self.name = name
+        self.value = value
+
+    def get_lookup(self):
+        if self.name in ['like', 'ilike']:
+            return u'%{0}%'.format(self.value)
+        return self.value
+
+
 class Filter(object):
     lookup = ''
 
@@ -17,19 +29,16 @@ class Filter(object):
     def filter(self, model, qs, param, value):
         if not value:
             return qs
-        try:
-            value = self.prepare_value(value)
-        except ValueError:
-            return qs
 
-        try:
-            # Get sqlalchemy InstrumentedAttribute
-            column = getattr(model, param)
-            # Get column attribute to filter against
-            f = getattr(column, self.lookup)(value)
-            return qs.filter(f)
-        except AttributeError:
-            return qs
+        value = self.prepare_value(value)
+
+        # Get sqlalchemy InstrumentedAttribute
+        column = getattr(model, param)
+        # Get column attribute to filter against
+        lparam = LookupParam(self.lookup, value)
+
+        f = getattr(column, self.lookup)(lparam.get_lookup())
+        return qs.filter(f)
 
 
 class IntegerFilter(Filter):
@@ -70,6 +79,9 @@ class DateTimeFilter(BaseDateTimeFilter):
     date_fmt = '%Y-%m-%d %H:%M:%S'
 
     def prepare_value(self, value):
+        if isinstance(value, (datetime.datetime, datetime.date, datetime.time)):
+            return value
+
         return datetime.datetime.strptime(value, self.date_fmt)
 
 
@@ -77,6 +89,9 @@ class DateFilter(BaseDateTimeFilter):
     date_fmt = '%Y-%m-%d'
 
     def prepare_value(self, value):
+        if isinstance(value, (datetime.datetime, datetime.date, datetime.time)):
+            return value
+
         return datetime.datetime.strptime(value, self.date_fmt).date()
 
 
@@ -84,6 +99,9 @@ class TimeFilter(BaseDateTimeFilter):
     date_fmt = '%H:%M:%S'
 
     def prepare_value(self, value):
+        if isinstance(value, (datetime.datetime, datetime.date, datetime.time)):
+            return value
+
         return datetime.datetime.strptime(value, self.date_fmt).time()
 
 
@@ -132,12 +150,13 @@ class BaseFilterFactory(object):
         self.qs = self.qs.order_by("%s %s" % (sort_by, order))
 
     def apply(self, request, *args, **kwargs):
+        qs = self.qs
         if not self.filters:
-            return self.qs
+            return qs
 
         for (name, field) in self.filters.iteritems():
             value = request.params.get(name, None)
-            self.qs = field.filter(self.model, self.qs, name, value)
+            qs = field.filter(self.model, qs, name, value)
 
         q = self.get_q_param(request)
         if q:
@@ -147,7 +166,7 @@ class BaseFilterFactory(object):
         if sort_by and order:
             self.process_sort_by_and_order(request, sort_by, order)
 
-        return self.qs
+        return qs
 
 
 class FilterFactory(BaseFilterFactory):
