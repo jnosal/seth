@@ -146,25 +146,20 @@ class BaseFilterFactory(object):
         assert self.model
         self.qs = qs
 
-    def get_q_param(self, req):
-        return req.params.get('q', None)
-
-    def process_q_filter(self, req, q):
-        pass
-
     def get_sort_by_and_order(self, request):
         sort_by = request.params.get('sort_by', '')
         sort_by = sort_by.split(',', 1)[0]
+        if not sort_by in self.filters:
+            sort_by = ''
 
         order = request.params.get('order', 'asc')
-
         if not order in ['asc', 'desc']:
             order = None
 
         return sort_by, order
 
-    def process_sort_by_and_order(self, request, sort_by, order):
-        self.qs = self.qs.order_by("%s %s" % (sort_by, order))
+    def process_sort_by_and_order(self, qs, request, sort_by, order):
+        return qs.order_by("%s %s" % (sort_by, order))
 
     def apply(self, request, *args, **kwargs):
         qs = self.qs
@@ -175,13 +170,9 @@ class BaseFilterFactory(object):
             value = request.params.get(name, None)
             qs = field.filter(self.model, qs, name, value)
 
-        q = self.get_q_param(request)
-        if q:
-            self.process_q_filter(request, q)
-
         sort_by, order = self.get_sort_by_and_order(request)
         if sort_by and order:
-            self.process_sort_by_and_order(request, sort_by, order)
+            qs = self.process_sort_by_and_order(qs, request, sort_by, order)
 
         return qs
 

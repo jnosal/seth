@@ -371,3 +371,63 @@ class ComplexFilterTestCase(BaseFilterTestCase):
             'str_col': 'testasudgasygdua'
         }
         self.assertEqual(factory.apply(self.freq(filter_data)).count(), 0)
+
+
+class SortAndOrderTestCase(BaseFilterTestCase):
+
+    def prepare_test(self):
+        SampleModel.manager.create(int_col=7)
+        SampleModel.manager.create(int_col=5)
+
+        qs = SampleModel.query
+
+        class ComplexFilterFactory(filtering.FilterFactory):
+            model = SampleModel
+            int_col = filtering.IntegerFilter(lookup='__ge__')
+
+        return ComplexFilterFactory(qs=qs)
+
+    def test_no_sort_applied(self):
+        factory = self.prepare_test()
+        filter_data = {
+            'int_col': 5
+        }
+        qs = factory.apply(self.freq(filter_data))
+        self.assertEqual(qs.count(), 2)
+        self.assertEqual(qs.all()[0].int_col, 7)
+        self.assertEqual(qs.all()[1].int_col, 5)
+
+    def test_sort_ascending_order(self):
+        factory = self.prepare_test()
+        filter_data = {
+            'int_col': 5,
+            'sort_by': 'int_col',
+            'order': 'asc'
+        }
+        qs = factory.apply(self.freq(filter_data))
+        self.assertEqual(qs.count(), 2)
+        self.assertEqual(qs.all()[0].int_col, 5)
+        self.assertEqual(qs.all()[1].int_col, 7)
+
+    def test_sort_specified_but_order_should_be_asc_by_default(self):
+        factory = self.prepare_test()
+        filter_data = {
+            'int_col': 5,
+            'sort_by': 'int_col'
+        }
+        qs = factory.apply(self.freq(filter_data))
+        self.assertEqual(qs.count(), 2)
+        self.assertEqual(qs.all()[0].int_col, 5)
+        self.assertEqual(qs.all()[1].int_col, 7)
+
+    def test_descending_order_sort(self):
+        factory = self.prepare_test()
+        filter_data = {
+            'int_col': 5,
+            'sort_by': 'int_col',
+            'order': 'desc'
+        }
+        qs = factory.apply(self.freq(filter_data))
+        self.assertEqual(qs.count(), 2)
+        self.assertEqual(qs.all()[0].int_col, 7)
+        self.assertEqual(qs.all()[1].int_col, 5)
