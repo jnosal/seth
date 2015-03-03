@@ -1,6 +1,6 @@
-from seth.classy import mixins
 from seth.paginator import paginate
-from seth.classy.base import RestResource
+from seth.classy.rest import mixins
+from seth.classy.rest.base import RestResource
 
 
 class GenericApiView(mixins.BaseSchemaMixin, RestResource):
@@ -122,6 +122,7 @@ class RetrieveUpdateApiView(mixins.ReadResourceMixin,
     allowed_methods = ['GET', 'PATCH', 'PUT']
 
     def get(self, **kwargs):
+        print "ADDA"
         return self.read(**kwargs)
 
     def patch(self, **kwargs):

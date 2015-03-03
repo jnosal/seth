@@ -4,9 +4,9 @@ from datetime import datetime
 
 from pyramid.renderers import JSONP
 
-from seth.classy import generics
+from seth.classy.rest import generics
 from seth.tests.models import SampleModel
-from seth.classy.base import RestResource
+from seth.classy.rest.base import RestResource
 from seth.tests import IntegrationTestBase, UnitTestBase
 from seth.tests.schemas import SampleModelSchema, SampleModelRequiredSchema
 
@@ -72,6 +72,13 @@ class DefaultResourceTestCase(UnitTestBase):
         self.assertEqual(view.not_allowed(), view.head())
         self.assertEqual(view.not_allowed(), view.trace())
         self.assertEqual(view.not_allowed(), view.connect())
+
+    def test_default_resource_when_requested_with_dummy_http_method(self):
+        class DefaultResource(RestResource):
+            pass
+
+        view = DefaultResource(self.get_csrf_request(request_method='NOT_EXISTANT'))
+        self.assertIn('error', view.dispatch())
 
 
 class BasicResourceWithNotJsonRendererTestCase(IntegrationTestBase):
@@ -229,7 +236,6 @@ class BaseDetailResourceTestCase(IntegrationTestBase):
         self.session.refresh(instance)
         r = self.app.get('/test_detail/{0}'.format(instance.id), expect_errors=True)
         self.assertEqual(r.status_int, 200)
-        print r.body
 
 
 class BaseCreateResourceTestCase(IntegrationTestBase):
@@ -420,7 +426,7 @@ class BaseUpdateViewTestCase(IntegrationTestBase):
         self.assertEqual(after.dec_col, Decimal('5.0'))
 
 
-class BasePatchAndPutApiViewTestCase(IntegrationTestBase):
+class BasePatchAndUpdateApiViewTestCase(IntegrationTestBase):
 
     def extend_app_configuration(self, config):
         config.include('seth')
@@ -435,11 +441,15 @@ class BasePatchAndPutApiViewTestCase(IntegrationTestBase):
         config.resource_path(SamplePatchAndUpdateResource, '/test_update/{id}')
 
     def test_get_returns_method_not_allowed(self):
-        r = self.app.delete('/test_update/123123', expect_errors=True)
+        r = self.app.get('/test_update/123123', expect_errors=True)
         self.assertEqual(r.status_int, 405)
 
     def test_update_model_does_not_exist(self):
         r = self.app.put('/test_update/12312', {}, expect_errors=True)
+        self.assertEqual(r.status_int, 404)
+
+    def test_patch_model_does_not_exist(self):
+        r = self.app.patch('/test_update/12312', {}, expect_errors=True)
         self.assertEqual(r.status_int, 404)
 
     def test_update_model_schema_is_not_valid(self):
@@ -469,3 +479,30 @@ class BasePatchAndPutApiViewTestCase(IntegrationTestBase):
         after = SampleModel.query.get(instance.id)
         self.assertEqual(after.int_col, 4)
         self.assertEqual(after.dec_col, Decimal('5.0'))
+
+
+class BaseRetrieveUpdateApiView(IntegrationTestBase):
+
+    def extend_app_configuration(self, config):
+        config.include('seth')
+
+        class SamplePatchAndUpdateResource(generics.RetrieveUpdateApiView):
+            schema = SampleModelRequiredSchema
+            model = SampleModel
+
+            def get_queryset(self, *args, **kwargs):
+                return SampleModel.query
+
+        config.resource_path(SamplePatchAndUpdateResource, '/test_retrieve/{id}')
+
+    def test_get_returns_doest_not_exist(self):
+        r = self.app.get('/test_retrieve/123123', expect_errors=True)
+        self.assertEqual(r.status_int, 404)
+
+    def test_update_model_does_not_exist(self):
+        r = self.app.put('/test_retrieve/12312', {}, expect_errors=True)
+        self.assertEqual(r.status_int, 404)
+
+    def test_patch_model_does_not_exist(self):
+        r = self.app.patch('/test_retrieve/12312', {}, expect_errors=True)
+        self.assertEqual(r.status_int, 404)

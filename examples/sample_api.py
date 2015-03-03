@@ -8,7 +8,7 @@ from zope.sqlalchemy import ZopeTransactionExtension
 from marshmallow import Schema, fields
 
 from seth import db
-from seth.classy import generics
+from seth.classy.rest import generics
 from seth.db.mixins import BaseModelMixin
 
 

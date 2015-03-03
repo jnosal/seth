@@ -30,11 +30,21 @@ class RestResource(object):
     def request_method(self):
         return self.request.method
 
+    @property
+    def default_response_headers(self):
+        headers = [
+            ('Allow', ', '.join(self.allowed_methods)),
+        ]
+        return headers
+
     def dispatch(self, **kwargs):
         if self.request_method in self.dispatchable_methods:
 
             attr = self.request_method.lower()
-            return getattr(self, attr)(**kwargs)
+            response_data = getattr(self, attr)(**kwargs)
+            headers = self.default_response_headers
+            self.request.response.headerlist.extend(headers)
+            return response_data
 
         return self.not_allowed()
 
