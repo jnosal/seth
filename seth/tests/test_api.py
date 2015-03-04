@@ -531,7 +531,19 @@ class ColanderMixinTestCase(IntegrationTestBase):
             def get_queryset(self, *args, **kwargs):
                 return SampleModel.query
 
+        class SampleColanderSequenceSchema(colander.SequenceSchema):
+            items = SampleColanderSchema()
+
+        class ColanderPoweredListResource(generics.ListReadOnlyApiView,
+                                          mixins.ColanderSchemaMixin):
+            schema = SampleColanderSequenceSchema
+            paginate = False
+
+            def get_queryset(self, *args, **kwargs):
+                return SampleModel.query
+
         config.register_resource(ColanderPoweredResource, '/test_colander/{id}')
+        config.register_resource(ColanderPoweredListResource, '/test_colander_list')
 
     def test_update_model_schema_is_not_valid(self):
         instance = SampleModel(int_col=1, dec_col=3)
@@ -568,3 +580,18 @@ class ColanderMixinTestCase(IntegrationTestBase):
         self.session.refresh(instance)
         r = self.app.get('/test_colander/{0}'.format(instance.id), expect_errors=True)
         self.assertEqual(r.status_int, 200)
+
+    def test_get_list_no_model_exists(self):
+        r = self.app.get('/test_colander_list', expect_errors=True)
+        self.assertEqual(r.status_int, 200)
+        data = json.loads(r.body)
+        self.assertEqual(len(data['results']), 0)
+
+    def test_get_list_model_exists_in_database(self):
+        self.session.add(SampleModel(int_col=1, dec_col=3))
+        self.session.add(SampleModel(int_col=1, dec_col=3))
+        self.session.flush()
+        r = self.app.get('/test_colander_list', expect_errors=True)
+        self.assertEqual(r.status_int, 200)
+        data = json.loads(r.body)
+        self.assertEqual(len(data['results']), 2)

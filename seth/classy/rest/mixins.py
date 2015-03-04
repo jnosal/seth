@@ -1,3 +1,6 @@
+import types
+
+from sqlalchemy.orm.query import Query
 from pyramid.httpexceptions import HTTPCreated, HTTPOk
 
 from seth import db
@@ -30,7 +33,19 @@ class BaseSchemaMixin(object):
 
 class ColanderSchemaMixin(BaseSchemaMixin):
 
+    def _get_schema(self, many):
+        if self.schema:
+            return self.schema()
+        else:
+            return self.get_schema_class()()
+
     def dump_schema(self, schema_class, data):
+        if isinstance(data, types.GeneratorType):
+            data = [_ for _ in data]
+
+        if isinstance(data, Query):
+            data = [model.to_dict() for model in data.all()]
+
         if isinstance(data, db_mixins.PlainModelMixin):
             data = data.to_dict()
 
