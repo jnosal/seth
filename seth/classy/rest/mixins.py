@@ -40,11 +40,11 @@ class ColanderSchemaMixin(BaseSchemaMixin):
     def load_schema(self, schema_class, data):
         import colander
         try:
-            data = schema_class.deserialize(data)
+            deserialized = schema_class.deserialize(data)
         except colander.Invalid, e:
             errors = e.asdict()
-            return data, errors
-        return schema_class.deserialize(data), {}
+            return None, errors
+        return deserialized, {}
 
 
 class RetrieveResourceMixin(object):
