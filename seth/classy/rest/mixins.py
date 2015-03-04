@@ -19,15 +19,25 @@ class BaseSchemaMixin(object):
         else:
             return self.get_schema_class()(many=many)
 
+    def prepare_data_to_dump(self, data):
+        # Use to prepare data before it gets serialized
+        return data
+
+    def prepare_data_to_load(self, data):
+        # Use to prepare data before it gets deserialized / loaded
+        return data
+
     def dump_schema(self, schema_class, data):
         # Must return serialized structure
         # override if schema is handled differently
+        data = self.prepare_data_to_dump(data)
         results = schema_class.dump(data)
         return results.data
 
     def load_schema(self, schema_class, data):
         # Must return data, errors tuple
         # override if schema is handled differently
+        data = self.prepare_data_to_load(data)
         return schema_class.load(data)
 
 
@@ -39,21 +49,26 @@ class ColanderSchemaMixin(BaseSchemaMixin):
         else:
             return self.get_schema_class()()
 
-    def dump_schema(self, schema_class, data):
+    def prepare_data_to_dump(self, data):
         if isinstance(data, types.GeneratorType):
-            data = [_ for _ in data]
+            return [_ for _ in data]
 
         if isinstance(data, Query):
-            data = [model.to_dict() for model in data.all()]
+            return [model.to_dict() for model in data.all()]
 
         if isinstance(data, db_mixins.PlainModelMixin):
-            data = data.to_dict()
+            return data.to_dict()
 
+        return data
+
+    def dump_schema(self, schema_class, data):
+        data = self.prepare_data_to_dump(data)
         results = schema_class.serialize(data)
         return results
 
     def load_schema(self, schema_class, data):
         import colander
+        data = self.prepare_data_to_load(data)
         try:
             deserialized = schema_class.deserialize(data)
         except colander.Invalid, e:
