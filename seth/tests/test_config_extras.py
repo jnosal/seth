@@ -84,7 +84,7 @@ class RouteDecoratorTests(IntegrationTestBase):
     def test_route_path_decorated_raises_typeerror_for_decorated_cbv_spec(self):
         self.assertRaises(HTTPNotFound, lambda: self.app.get('/decorated_cbv_spec'))
         self.config.scan(__name__)
-        self.assertRaises(TypeError, lambda : self.app.get('/decorated_cbv_spec').status_code)
+        self.assertRaises(TypeError, lambda: self.app.get('/decorated_cbv_spec').status_code)
 
 
 class JsonAdapterTestCase(IntegrationTestBase):

@@ -4,7 +4,7 @@ from decimal import Decimal
 from pyramid.renderers import JSONP
 
 from seth import filtering
-from seth.classy.rest import generics
+from seth.classy.rest import generics, mixins
 from seth.tests.models import SampleModel
 from seth.classy.rest.base import RestResource
 from seth.tests import IntegrationTestBase, UnitTestBase
@@ -510,3 +510,61 @@ class BaseRetrieveUpdateApiView(IntegrationTestBase):
     def test_patch_model_does_not_exist(self):
         r = self.app.patch('/test_retrieve/12312', {}, expect_errors=True)
         self.assertEqual(r.status_int, 404)
+
+
+class ColanderMixinTestCase(IntegrationTestBase):
+
+    def extend_app_configuration(self, config):
+        # On special requests from czekan !
+        config.include('seth')
+        import colander
+
+        class SampleColanderSchema(colander.MappingSchema):
+            int_col = colander.SchemaNode(colander.Int())
+            dec_col = colander.SchemaNode(colander.Decimal())
+
+        class ColanderPoweredResource(generics.RetrieveUpdateApiView,
+                                      mixins.ColanderSchemaMixin):
+            schema = SampleColanderSchema
+            model = SampleModel
+
+            def get_queryset(self, *args, **kwargs):
+                return SampleModel.query
+
+        config.register_resource(ColanderPoweredResource, '/test_colander/{id}')
+
+    def test_update_model_schema_is_not_valid(self):
+        instance = SampleModel(int_col=1, dec_col=3)
+        self.session.add(instance)
+        self.session.flush()
+        r = self.app.put_json('/test_colander/{0}'.format(instance.id), {}, expect_errors=True)
+        self.assertEqual(r.status_int, 400)
+        json_data = json.loads(r.body)
+        self.assertIn('errors', json_data)
+
+    def test_update_is_succesful(self):
+        instance = SampleModel(int_col=1, dec_col=3)
+        self.session.add(instance)
+        self.session.flush()
+        before = SampleModel.query.get(instance.id)
+        self.assertEqual(before.int_col, 1)
+        self.assertEqual(before.dec_col, Decimal('3.0'))
+        schema_data = {
+            'int_col': 4,
+            'dec_col': 5
+        }
+        r = self.app.put_json('/test_colander/{0}'.format(instance.id), schema_data, expect_errors=True)
+        self.assertEqual(r.status_int, 200)
+        json_data = json.loads(r.body)
+        self.assertEqual(json_data['status'], 'Updated')
+        after = SampleModel.query.get(instance.id)
+        self.assertEqual(after.int_col, 4)
+        self.assertEqual(after.dec_col, Decimal('5.0'))
+
+    def test_get_model(self):
+        instance = SampleModel(int_col=1, dec_col=3)
+        self.session.add(instance)
+        self.session.flush()
+        self.session.refresh(instance)
+        r = self.app.get('/test_colander/{0}'.format(instance.id), expect_errors=True)
+        self.assertEqual(r.status_int, 200)

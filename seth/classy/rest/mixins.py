@@ -1,6 +1,7 @@
 from pyramid.httpexceptions import HTTPCreated, HTTPOk
 
 from seth import db
+from seth.db import mixins as db_mixins
 
 
 class BaseSchemaMixin(object):
@@ -16,13 +17,34 @@ class BaseSchemaMixin(object):
             return self.get_schema_class()(many=many)
 
     def dump_schema(self, schema_class, data):
+        # Must return serialized structure
         # override if schema is handled differently
         results = schema_class.dump(data)
         return results.data
 
     def load_schema(self, schema_class, data):
+        # Must return data, errors tuple
         # override if schema is handled differently
         return schema_class.load(data)
+
+
+class ColanderSchemaMixin(BaseSchemaMixin):
+
+    def dump_schema(self, schema_class, data):
+        if isinstance(data, db_mixins.PlainModelMixin):
+            data = data.to_dict()
+
+        results = schema_class.serialize(data)
+        return results
+
+    def load_schema(self, schema_class, data):
+        import colander
+        try:
+            data = schema_class.deserialize(data)
+        except colander.Invalid, e:
+            errors = e.asdict()
+            return data, errors
+        return schema_class.deserialize(data), {}
 
 
 class RetrieveResourceMixin(object):
