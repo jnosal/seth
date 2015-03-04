@@ -1,6 +1,10 @@
+from decimal import Decimal
+from datetime import datetime
+
 from pyramid.response import Response
 from pyramid.httpexceptions import HTTPNotFound
 
+from seth.classy.rest import generics
 from seth.decorators import route_path
 from seth.tests import IntegrationTestBase
 
@@ -81,3 +85,30 @@ class RouteDecoratorTests(IntegrationTestBase):
         self.assertRaises(HTTPNotFound, lambda: self.app.get('/decorated_cbv_spec'))
         self.config.scan(__name__)
         self.assertRaises(TypeError, lambda : self.app.get('/decorated_cbv_spec').status_code)
+
+
+class JsonAdapterTestCase(IntegrationTestBase):
+
+    def make_localizer(self, *args, **kwargs):
+        from pyramid.i18n import Localizer
+        return Localizer(*args, **kwargs)
+
+    def extend_app_configuration(self, config):
+        config.include('seth')
+
+        class GenericResource(generics.GenericApiView):
+
+            def get(self, **kwargs):
+                return {
+                    'something': Decimal("3.0"),
+                    'something_else': datetime.now()
+                }
+
+        config.register_resource(GenericResource, '/test')
+
+    def test_decimal_and_datetme_are_serialized_properly(self):
+        r = self.app.get('/test')
+        self.assertEqual(r.status_int, 200)
+
+
+
