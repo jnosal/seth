@@ -5,8 +5,8 @@ from pyramid.response import Response
 from pyramid.httpexceptions import HTTPNotFound
 
 from seth.classy.rest import generics
-from seth.decorators import route_path
-from seth.tests import IntegrationTestBase
+from seth.decorators import route_path, cached_property
+from seth.tests import IntegrationTestBase, UnitTestBase
 
 
 @route_path('/decorated_fbv')
@@ -109,6 +109,32 @@ class JsonAdapterTestCase(IntegrationTestBase):
     def test_decimal_and_datetme_are_serialized_properly(self):
         r = self.app.get('/test')
         self.assertEqual(r.status_int, 200)
+
+
+class ExtraUtilsTestCase(UnitTestBase):
+
+    def test_cached_property(self):
+        import random
+
+        class A(object):
+
+            @property
+            def not_cached(self):
+                return random.random()
+
+            @cached_property
+            def cached(self):
+                return random.random()
+
+        inst = A()
+        k1 = inst.cached
+        k2 = inst.cached
+
+        a1 = inst.not_cached
+        a2 = inst.not_cached
+
+        self.assertEqual(k1, k2)
+        self.assertNotEqual(a1, a2)
 
 
 
