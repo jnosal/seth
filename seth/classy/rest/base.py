@@ -3,8 +3,10 @@ from pyramid.httpexceptions import HTTPNotFound, HTTPMethodNotAllowed,\
 
 
 class RestResource(object):
-
+    display_version = True
     authenticators = ()
+    versioning_policy = None
+
     allowed_methods = []
     dispatchable_methods = [
         'GET', 'POST', 'PUT', 'DELETE', 'PATCH',
@@ -13,6 +15,24 @@ class RestResource(object):
 
     def __init__(self, request):
         self.request = request
+
+    def perform_setup(self):
+        if self.versioning_policy:
+            policy = self.versioning_policy()
+            version = policy.get_default_version(self.request)
+        else:
+            settings = self.request.registry.settings
+            version = settings.get('seth.default_api_version', '1.0')
+
+        self.request.version = version
+
+    def validate_version(self):
+        if self.versioning_policy:
+            policy = self.versioning_policy()
+            fetched_version = policy.get_version_info(self.request)
+            return policy.is_allowed(self.request, fetched_version)
+
+        return True
 
     def get_authenticators(self):
         return ()
@@ -35,10 +55,18 @@ class RestResource(object):
         headers = [
             ('Allow', ', '.join(self.allowed_methods)),
         ]
+
+        if self.display_version:
+            headers.append(('API-Version', self.request.version))
+
         return headers
 
     def dispatch(self, **kwargs):
+        self.perform_setup()
+
         if self.request_method in self.dispatchable_methods:
+            if not self.validate_version():
+                return self.not_found()
 
             attr = self.request_method.lower()
             response_data = getattr(self, attr)(**kwargs)
