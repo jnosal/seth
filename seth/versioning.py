@@ -30,3 +30,10 @@ class CheckQueryParamsVersioningPolicy(BaseVersioningPolicy):
 
     def get_version_info(self, request, *args, **kwargs):
         return request.params.get('version', '')
+
+
+class CheckHeaderVersioningPolicy(BaseVersioningPolicy):
+    header_name = 'Api-Version'
+
+    def get_version_info(self, request, *args, **kwargs):
+        return request.headers.get(self.header_name, '')

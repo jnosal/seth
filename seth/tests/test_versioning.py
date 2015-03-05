@@ -153,3 +153,43 @@ class CheckParamsVersionPolicy(IntegrationTestBase):
     def test_no_version_in_query_params_allowed_are_set(self):
         r = self.app.get('/test_allow_version', expect_errors=True)
         self.assertEqual(r.status_int, 404)
+
+
+class CheckHeaderVersionPolicy(IntegrationTestBase):
+
+    def extend_app_configuration(self, config):
+        config.include('seth')
+
+        class AllowVersionOnePolicy(versioning.CheckHeaderVersioningPolicy):
+            default_version = '22.0'
+
+            def get_allowed_version(self):
+                return ['5.0']
+
+        class CheckQueryParamsResourceSecond(generics.GenericApiView):
+            versioning_policy = AllowVersionOnePolicy
+
+            def get(self, **kwargs):
+                return {}
+
+        config.register_resource(CheckQueryParamsResourceSecond, '/test_allow_header')
+
+    def test_allow_default_version(self):
+        r = self.app.get('/test_allow_header', headers={'Api-Version': '22.0'})
+        self.assertEqual(r.status_int, 200)
+
+    def test_allowed_versions(self):
+        r = self.app.get('/test_allow_header', headers={'Api-Version': '5.0'})
+        self.assertEqual(r.status_int, 200)
+
+    def test_wrong_version_in_headers(self):
+        r = self.app.get('/test_allow_header', headers={'Api-Version': '666.0'}, expect_errors=True)
+        self.assertEqual(r.status_int, 404)
+
+    def test_no_header_in_request(self):
+        r = self.app.get('/test_allow_header', expect_errors=True)
+        self.assertEqual(r.status_int, 404)
+
+    def test_wrong_header_set(self):
+        r = self.app.get('/test_allow_header', headers={'Api-WRONG': '22.0'}, expect_errors=True)
+        self.assertEqual(r.status_int, 404)
