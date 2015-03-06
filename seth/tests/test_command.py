@@ -55,17 +55,6 @@ class CommandUtilityTestCase(UnitTestBase):
         manager = command.CommandManager(test_ini)
         manager.run('my_cmd', testing=True)
 
-    def test_running_with_wrong_sys_arg_without_testing_param__set_to_true_raies_SystemError(self):
-        class MyCommand(command.Command):
-            name = 'my_cmd'
-
-            def run(self):
-                pass
-
-        manager = command.CommandManager(test_ini)
-        manager.register_command(MyCommand)
-        self.assertRaises(SystemExit, lambda: manager.run('my_cmd', testing=False))
-
     def test_run_command(self):
         class MyCommand(command.Command):
             name = 'my_cmd'
@@ -85,9 +74,3 @@ class CommandUtilityTestCase(UnitTestBase):
         manager = command.CommandManager(test_ini)
         manager.register_command(MyCommand)
         self.assertRaises(NotImplementedError, lambda: manager.run('my_cmd', testing=True))
-
-    def test_command_runner_raises_SystemExit_when_not_run_with_testing_param(self):
-        class MyCommand(command.Command):
-            name = 'my_cmd'
-
-        self.assertRaises(SystemExit, lambda: command.run_command(commands=[MyCommand]))
