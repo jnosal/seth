@@ -16,6 +16,7 @@ class SampleModel(Base):
     dec_col = sa.Column(sa.Numeric)
     str_col = sa.Column(sa.String)
     bool_col = sa.Column(sa.Boolean)
+    float_col = sa.Column(sa.Float)
 
 
 class PredefinedManager(BaseManager):

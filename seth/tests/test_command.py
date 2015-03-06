@@ -7,10 +7,19 @@ from seth.tests import UnitTestBase
 
 test_ini = os.path.join(here, 'test.ini')
 
+
 class CommandUtilityTestCase(UnitTestBase):
 
-    def test_raises_type_error_when_no_ini_file(self):
+    def test_raises_TypeError_when_no_ini_file(self):
         self.assertRaises(TypeError, lambda: command.CommandManager())
+
+    def test_raises_TypeError_when_registering_same_command_twice(self):
+        class MyCommand(command.Command):
+            name = 'my_cmd'
+
+        manager = command.CommandManager(test_ini)
+        manager.register_command(MyCommand)
+        self.assertRaises(TypeError, lambda: manager.register_command(MyCommand))
 
     def test_instantiate_app_proper_ini_file(self):
         manager = command.CommandManager(test_ini)
@@ -22,7 +31,6 @@ class CommandUtilityTestCase(UnitTestBase):
         self.assertIn('root', env)
         self.assertIn('root_factory', env)
         self.assertIn('registry', env)
-
 
     def test_instantiate_app_ini_file_does_not_exist(self):
         manager = command.CommandManager('i_dont_exist.ini')
@@ -43,6 +51,21 @@ class CommandUtilityTestCase(UnitTestBase):
         self.assertIn('my_cmd', manager.commands)
         self.assertEqual(manager.commands['my_cmd'], MyCommand)
 
+    def test_run_no_command_found_pasess(self):
+        manager = command.CommandManager(test_ini)
+        manager.run('my_cmd', testing=True)
+
+    def test_running_with_wrong_sys_arg_without_testing_param__set_to_true_raies_SystemError(self):
+        class MyCommand(command.Command):
+            name = 'my_cmd'
+
+            def run(self):
+                pass
+
+        manager = command.CommandManager(test_ini)
+        manager.register_command(MyCommand)
+        self.assertRaises(SystemExit, lambda: manager.run('my_cmd', testing=False))
+
     def test_run_command(self):
         class MyCommand(command.Command):
             name = 'my_cmd'
@@ -62,3 +85,9 @@ class CommandUtilityTestCase(UnitTestBase):
         manager = command.CommandManager(test_ini)
         manager.register_command(MyCommand)
         self.assertRaises(NotImplementedError, lambda: manager.run('my_cmd', testing=True))
+
+    def test_command_runner_raises_SystemExit_when_not_run_with_testing_param(self):
+        class MyCommand(command.Command):
+            name = 'my_cmd'
+
+        self.assertRaises(SystemExit, lambda: command.run_command(commands=[MyCommand]))

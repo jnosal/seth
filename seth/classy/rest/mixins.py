@@ -51,13 +51,13 @@ class ColanderSchemaMixin(BaseSchemaMixin):
 
     def prepare_data_to_dump(self, data):
         if isinstance(data, types.GeneratorType):
-            return [_ for _ in data]
+            data = [_ for _ in data]
 
         if isinstance(data, Query):
-            return [model.to_dict() for model in data.all()]
+            data = [model.to_dict() for model in data.all()]
 
         if isinstance(data, db_mixins.PlainModelMixin):
-            return data.to_dict()
+            data = data.to_dict()
 
         return data
 

@@ -431,3 +431,40 @@ class SortAndOrderTestCase(BaseFilterTestCase):
         self.assertEqual(qs.count(), 2)
         self.assertEqual(qs.all()[0].int_col, 7)
         self.assertEqual(qs.all()[1].int_col, 5)
+
+    def test_order_does_not_make_sense_default_to_none(self):
+        factory = self.prepare_test()
+        filter_data = {
+            'int_col': 5,
+            'sort_by': 'int_col',
+            'order': 'asuydasygdasyugd'
+        }
+        qs = factory.apply(self.freq(filter_data))
+        self.assertEqual(qs.count(), 2)
+
+
+class FloatAndDecimalFilterTestCase(BaseFilterTestCase):
+
+    def get_factory(self, qs):
+        class SimpleFactory(filtering.FilterFactory):
+            model = SampleModel
+            float_col = filtering.FloatFilter()
+            dec_col = filtering.DecimalFilter()
+
+        return SimpleFactory(qs=qs)
+
+    def test_value_is_empty(self):
+        qs = SampleModel.query
+        factory = self.get_factory(qs=qs)
+        self.assertEqual(factory.apply(self.freq({})), qs)
+
+    def test_find_models(self):
+        SampleModel.manager.create(float_col=1.0, dec_col=5.0)
+        SampleModel.manager.create(float_col=2.0, dec_col=6.0)
+        qs = SampleModel.query
+        factory = self.get_factory(qs=qs)
+        filtered_qs = factory.apply(self.freq({'float_col': 1.0}))
+        self.assertEqual(filtered_qs.count(), 1)
+
+        filtered_qs = factory.apply(self.freq({'dec_col': 6.0}))
+        self.assertEqual(filtered_qs.count(), 1)
