@@ -1,3 +1,4 @@
+import os
 import sys
 import argparse
 
@@ -59,3 +60,34 @@ class CommandManager(object):
             parser.add_argument(*names, **a[1])
 
         return parser.parse_args(sys.argv[3:])
+
+
+def run_command(Runner=CommandManager, commands=None):
+    commands = commands if commands else []
+
+    usage = 'Usage: {0} settings_file.ini command'.format(
+        os.path.basename(sys.argv[0])
+    )
+
+    if len(sys.argv) < 2:
+        print usage
+        sys.exit(1)
+
+    ini_file = os.path.abspath(sys.argv[1])
+
+    if not os.path.isfile(ini_file):
+        print "No setting file".format(ini_file)
+        print usage
+        sys.exit(1)
+
+    runner = Runner(ini_file)
+
+    for cmd in commands:
+        runner.register_command(cmd)
+
+    try:
+        command = sys.argv[2]
+    except IndexError:
+        command = ''
+
+    runner.run(command)

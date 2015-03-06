@@ -18,6 +18,7 @@ class CommandUtilityTestCase(UnitTestBase):
         self.assertIn('root_factory', env)
         self.assertIn('registry', env)
 
+
     def test_instantiate_app_ini_file_does_not_exist(self):
         manager = command.CommandManager('i_dont_exist.ini')
         self.assertEqual(manager.commands, {})
