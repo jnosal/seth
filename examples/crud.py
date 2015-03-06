@@ -1,4 +1,6 @@
 import sqlalchemy as sa
+
+from pyramid.renderers import render
 from pyramid.config import Configurator
 
 from sqlalchemy import engine_from_config
@@ -42,6 +44,9 @@ if __name__ == '__main__':
     session.add(SuperModel(**{'string_column': 'b'}))
     db.commit()
 
+    config.include('seth')
+    app = config.make_wsgi_app()
+
     print "Querying using manager"
     print SuperModel.manager.all()
 
@@ -53,6 +58,16 @@ if __name__ == '__main__':
 
     print "Using get or create - returns (obj, created)"
     print SuperModel.manager.get_or_create(id=55)
-    
+
     print "Replying same operation - return (obj, created)"
     print SuperModel.manager.get_or_create(id=55)
+
+    print "Creating model"
+    print "Before: {0}".format(SuperModel.query.count())
+    SuperModel.manager.create(**{})
+    print "After: {0}".format(SuperModel.query.count())
+
+    print "Paginating"
+    pagination = SuperModel.manager.paginate()
+    print "Pagination - json repr"
+    print pagination.__json__()
