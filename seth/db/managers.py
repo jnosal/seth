@@ -54,9 +54,9 @@ class BaseManager(object):
     def get_or_create(self, **kwargs):
         obj = self.model_class.query.filter_by(**kwargs).first()
         if obj:
-            return obj
+            return obj, False
         else:
-            return self.create(**kwargs)
+            return self.create(**kwargs), True
 
     def find(self, **kwargs):
         return self.model_class.query.filter_by(**kwargs)

@@ -120,9 +120,11 @@ class ManagerTestCase(UnitTestBase):
 
     def test_persistence_get_or_create_method(self):
         self.assertEqual(SampleModel.query.count(), 0)
-        m1 = SampleModel.manager.get_or_create(id=123123)
+        m1, created = SampleModel.manager.get_or_create(id=123123)
         self.assertEqual(SampleModel.query.count(), 1)
-        m2 = SampleModel.manager.get_or_create(id=123123)
+        self.assertEqual(created, True)
+        m2, created = SampleModel.manager.get_or_create(id=123123)
+        self.assertEqual(created, False)
         self.assertEqual(SampleModel.query.count(), 1)
         self.assertEqual(m1, m2)
 
