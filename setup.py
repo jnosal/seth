@@ -31,6 +31,11 @@ setup(
     author_email = 'jacek.nosal@outlook.com',
     url = 'https://github.com/jnosal/seth',
     keywords = ['sqlalchemy', 'pyramid'],
+    entry_points={
+        'console_scripts': [
+            'sethpusher = seth.pusher.default_server:main',
+        ],
+    },
     classifiers = [
         'Development Status :: 1 - Planning',
         'Intended Audience :: Developers',
