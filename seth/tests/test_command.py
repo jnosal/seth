@@ -1,6 +1,11 @@
+import os
+
 from seth import command
+from seth.tests import here
 from seth.tests import UnitTestBase
 
+
+test_ini = os.path.join(here, 'test.ini')
 
 class CommandUtilityTestCase(UnitTestBase):
 
@@ -8,7 +13,7 @@ class CommandUtilityTestCase(UnitTestBase):
         self.assertRaises(TypeError, lambda: command.CommandManager())
 
     def test_instantiate_app_proper_ini_file(self):
-        manager = command.CommandManager('test.ini')
+        manager = command.CommandManager(test_ini)
         self.assertEqual(manager.commands, {})
         self.assertNotEqual(manager.ini_file, None)
         env = manager.bootstrap_application()
@@ -32,7 +37,7 @@ class CommandUtilityTestCase(UnitTestBase):
             def run(self):
                 print "hello"
 
-        manager = command.CommandManager('test.ini')
+        manager = command.CommandManager(test_ini)
         manager.register_command(MyCommand)
 
         self.assertIn('my_cmd', manager.commands)
@@ -45,7 +50,7 @@ class CommandUtilityTestCase(UnitTestBase):
             def run(self):
                 pass
 
-        manager = command.CommandManager('test.ini')
+        manager = command.CommandManager(test_ini)
         manager.register_command(MyCommand)
         manager.run('my_cmd', testing=True)
 
@@ -54,6 +59,6 @@ class CommandUtilityTestCase(UnitTestBase):
             name = 'my_cmd'
 
 
-        manager = command.CommandManager('test.ini')
+        manager = command.CommandManager(test_ini)
         manager.register_command(MyCommand)
         self.assertRaises(NotImplementedError, lambda: manager.run('my_cmd', testing=True))
