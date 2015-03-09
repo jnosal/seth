@@ -43,7 +43,9 @@ def main():
             logging.error(u"Problem loading application from path")
             sys.exit(1)
     else:
-        ApplicationClass = applications.SethPusherApplication
+        ApplicationClass = applications.SethPusherInMemoryApplication
+
+    logging.info(u"Application Class: {0}".format(ApplicationClass.__name__))
 
     application = ApplicationClass(**options.as_dict())
 
