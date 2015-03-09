@@ -14,7 +14,9 @@ test_requires = [
     'xhtml2pdf==0.0.5',
     'reportlab<3',
     'coverage',
-    'colander'
+    'colander',
+    'tornado>=4',
+    'sockjs-tornado==1.0.1'
 ]
 
 setup(
