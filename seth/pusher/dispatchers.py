@@ -83,5 +83,9 @@ class DefaultMessageDispatcher(object):
         if not self.handler:
             raise AttributeError(u"No handler registered.")
 
-        self.subscribed_to.remove(msg['channel'])
+        try:
+            self.subscribed_to.remove(msg['channel'])
+        except KeyError:
+            pass
+
         self.handler.handle_unsubscribe(msg)

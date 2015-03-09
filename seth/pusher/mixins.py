@@ -1,5 +1,4 @@
-import json
-import tornado.websocket
+from seth.pusher import utils
 
 
 class PubSubMixin(object):
@@ -25,7 +24,6 @@ class PubSubMixin(object):
 
     def broadcast(self, message, channel=None, sender=None):
         channel = 'all' if channel is None else channel
-        message = json.dumps(message)
         self.publisher.publish(channel, message)
 
 
@@ -69,24 +67,11 @@ class RedisPubSubMixin(PubSubMixin):
         import tornadoredis
         import tornadoredis.pubsub
 
-        class DefaultRedisSubscriber(tornadoredis.pubsub.BaseSubscriber):
-
-            def on_message(self, msg):
-                if msg and msg.kind == 'message':
-                    subscribers = list(self.subscribers[msg.channel].keys())
-                    for subscriber in subscribers:
-                        try:
-                            subscriber.send(msg.body)
-                        except tornado.websocket.WebSocketClosedError:
-                            self.unsubscribe(msg.channel, subscriber)
-
-                super(DefaultRedisSubscriber, self).on_message(msg)
-
         client = tornadoredis.Client(
             host=self.redis_host, port=self.redis_port,
             password=self.redis_password, selected_db=self.redis_selected_db
         )
-        return DefaultRedisSubscriber(client)
+        return tornadoredis.pubsub.SockJSSubscriber(client)
 
     def get_publisher(self, **kwargs):
         import redis
@@ -98,8 +83,46 @@ class RedisPubSubMixin(PubSubMixin):
 
 class InMemoryPubSubMixin(PubSubMixin):
 
+    _instance = None
+
+    @property
+    def pub_sub(self):
+        if not self._instance:
+            self._instance = utils.BasicPubSubManager()
+        return self._instance
+
+    def get_subscribers(self, channel=None):
+        if not channel:
+            return dict(
+                (channel, [i.dispatcher.subscriber_id for i in c])
+                for channel, c
+                in self.pub_sub.channels.iteritems()
+            )
+
+        if channel in self.pub_sub.channels:
+            return {
+                channel: [
+                    i.dispatcher.subscriber_id
+                    for i
+                    in self.pub_sub.channels[channel]
+                ]
+            }
+
+        return {
+            channel: []
+        }
+
+    def get_subscriber_count(self, channel=None):
+        if not channel:
+            return sum(len(i) for i in self.pub_sub.channels.itervalues())
+
+        if channel in self.pub_sub.channels:
+            return len(self.pub_sub.channels[channel])
+
+        return 0
+
     def get_subscriber(self, **kwargs):
-        pass
+        return self.pub_sub
 
     def get_publisher(self, **kwargs):
-        pass
+        return self.pub_sub
