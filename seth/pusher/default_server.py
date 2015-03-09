@@ -58,7 +58,3 @@ def main():
         options.host, options.port
     ))
     IOLoop.instance().start()
-
-
-if __name__ == '__main__':
-    main()
