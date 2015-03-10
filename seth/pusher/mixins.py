@@ -56,12 +56,19 @@ class RedisPubSubMixin(PubSubMixin):
 
     def get_subscriber_count(self, channel=None):
         if not channel:
-            return sum(self.subscriber.subscriber_count.values())
+            return sum(
+                len(i.keys()) for i in self.subscriber.subscribers.values()
+            )
 
-        if channel in self.subscriber.subscriber_count:
-            return self.subscriber.subscriber_count[channel]
+        if channel in self.subscriber.subscribers:
+            return len(self.subscriber.subscribers[channel])
 
         return 0
+
+    def is_subscribed_to_channel(self, subscriber, channel):
+        if channel in self.subscriber.subscribers:
+            return subscriber in self.subscriber.subscribers[channel]
+        return False
 
     def get_subscriber(self, **kwargs):
         import tornadoredis

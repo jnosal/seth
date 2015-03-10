@@ -3,6 +3,7 @@ from collections import defaultdict
 
 
 class BasicPubSubManager(object):
+    # used by in memory pubsubmixin
 
     def __init__(self):
         self.channels = defaultdict(set)
@@ -17,6 +18,8 @@ class BasicPubSubManager(object):
     def unsubscribe(self, channel, subscriber):
         try:
             self.channels[channel].remove(subscriber)
+            if len(self.channels[channel]) == 0:
+                del self.channels[channel]
         except (KeyError, ValueError):
             pass
 
