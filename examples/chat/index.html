@@ -1,27 +1,101 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.4.2/jquery.min.js"></script>
-  <script src="http://cdn.jsdelivr.net/sockjs/0.3/sockjs.min.js"></script>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.2/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.2/css/bootstrap-theme.min.css" />
+    <script src="https://code.jquery.com/jquery-1.11.2.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.2/js/bootstrap.min.js"></script>
+    <script src="http://cdn.jsdelivr.net/sockjs/0.3/sockjs.min.js"></script>
+</head>
+<body>
+<div style="margin-left: 15%; margin-right: 15%;">
+    <h3 class="text-center">Your fancy chat interface</h3>
+    <div class="text-center">
+        Status: <span id="status" style="font-weight: bold;">disconnected</span>
+        <div id="log" style="width: 60em; height: 20em; overflow:auto; border: 1px solid black; margin: 0 auto;">
+        </div>
+        <br/>
+        <div style="width: 60em; margin: 0 auto;">
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="panel panel-default">
+                        <div class="panel-body">
+                            <form id="chatform">
+                                <div class="form-group">
+                                    <label>Action</label>
+                                    <select id="type" class="form-control">
+                                        <option value="subscribe">Subscribe</option>
+                                        <option value="unsubscribe">Unsubscribe</option>
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label>Unique Id</label>
+                                    <input type="text" id="subscriber_id" class="form-control" readonly />
+                                </div>
+                                <div class="form-group">
+                                    <label>Channel</label>
+                                    <input type="text" value="sample" id="channel" class="form-control" />
+                                </div>
+                                <br/>
+                                <a href=#" id="connect" class="btn btn-primary">Connect</a>
+                                <input type="submit" class="btn btn-primary" id="submit" style="display: none;" value="Trigger">
+                            </form>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="panel panel-default">
+                        <div class="panel-body">
+                            <form id="messageform">
+                                <div class="form-group">
+                                    <label>Message</label>
+                                    <input type="text" value="sample" id="message" class="form-control" />
+                                </div>
+                                <br/>
+                                <input type="submit" class="btn btn-primary" id="submit-2" value="Message to channel">
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
   <script>
     $(function() {
+      $('#subscriber_id').val(Math.floor((Math.random() * 10000) + 1))
       var conn = null;
       function log(msg) {
         var control = $('#log');
         control.html(control.html() + msg + '<br/>');
         control.scrollTop(control.scrollTop() + 1000);
       }
+      $('#messageform').on('submit', function(e){
+          e.preventDefault();
+          if(conn == null){
+              alert('you must connect !')
+          }else{
+
+          }
+      })
       function connect() {
+        $('#submit').show();
+        $('#connect').hide();
         disconnect();
-        var transports = $('#protocols input:checked').map(function(){
-            return $(this).attr('id');
-        }).get();
-        conn = new SockJS('http://localhost:8080/connect', transports);
+
+        conn = new SockJS('http://localhost:8080/connect');
         log('Connecting...');
         conn.onopen = function() {
           log('Connected.');
           update_ui();
-          $('form').trigger('submit')
+            var msg = JSON.stringify({
+                'type': 'connect',
+                'subscriber_id': $('#subscriber_id').val(),
+                'channel': $('#channel').val()
+            });
+
+            conn.send(msg);
         };
         conn.onmessage = function(e) {
           log('Received: ' + e.data);
@@ -38,6 +112,7 @@
           conn.close();
           conn = null;
           update_ui();
+          $('#connect').show();
         }
       }
       function update_ui() {
@@ -60,7 +135,7 @@
         return false;
       });
 
-      $('form').submit(function() {
+      $('#chatform').submit(function() {
         var msg = JSON.stringify({
             'type': $('#type').val(),
             'subscriber_id': $('#subscriber_id').val(),
@@ -70,61 +145,9 @@
         conn.send(msg);
         return false;
       });
+
     });
 </script>
-</head>
-<body>
-<h3>Chat!</h3>
-<div id="protocols" style="float: right">
-  <ul>
-    <li>
-      <input id="websocket" type="checkbox" value="websocket" checked="checked"></input>
-      <label for="websocket">websocket</label>
-    </li>
-    <li>
-      <input id="xhr-streaming" type="checkbox" value="xhr-streaming" checked="checked"></input>
-      <label for="xhr-streaming">xhr-streaming</label>
-    </li>
-    <li>
-      <input id="iframe-eventsource" type="checkbox" value="iframe-eventsource" checked="checked"></input>
-      <label for="iframe-eventsource">iframe-eventsource</label>
-    </li>
-    <li>
-      <input id="iframe-htmlfile" type="checkbox" value="iframe-htmlfile" checked="checked"></input>
-      <label for="iframe-htmlfile">iframe-htmlfile</label>
-    </li>
-    <li>
-      <input id="xhr-polling" type="checkbox" value="xhr-polling" checked="checked"></input>
-      <label for="xhr-polling">xhr-polling</label>
-    </li>
-    <li>
-      <input id="iframe-xhr-polling" type="checkbox" value="iframe-xhr-polling" checked="checked"></input>
-      <label for="iframe-xhr-polling">iframe-xhr-polling</label>
-    </li>
-    <li>
-      <input id="jsonp-polling" type="checkbox" value="jsonp-polling" checked="checked"></input>
-      <label for="jsonp-polling">jsonp-polling</label>
-    </li>
-  </ul>
-</div>
 
-<div>
-  <a id="connect" href="#">Connect</a>&nbsp;|&nbsp;Status: <span id="status">disconnected</span>
-</div>
-<div id="log" style="width: 60em; height: 20em; overflow:auto; border: 1px solid black">
-</div>
-<form id="chatform">
-    <select id="type">
-        <option value="connect">Connect</option>
-        <option value="subscribe">Subscribe</option>
-        <option value="unsubscribe">Unsubscribe</option>
-    </select>
-    <br/>
-    <input type="text" value="22" id="subscriber_id" />
-    <br/>
-    <input type="text" value="sample" id="channel" />
-    <br/>
-    <input type="submit" />
-</form>
 </body>
 </html>
