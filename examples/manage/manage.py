@@ -1,3 +1,6 @@
+#!/usr/bin/env python
+
+
 from seth import command
 from super_command import SuperCommand
 
