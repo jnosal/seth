@@ -37,7 +37,9 @@ def main():
     if options.app:
         try:
             components = options.app.split('.')
-            module = importlib.import_module(".".join(components[:-1]))
+            module_name = ".".join(components[:-1])
+            logging.info(u"Importing {0}".format(module_name))
+            module = importlib.import_module(module_name)
             ApplicationClass = getattr(module, components[-1])
         except AttributeError:
             logging.error(u"Problem loading application from path")
