@@ -18,6 +18,26 @@ def _register_resource(config, view, path, *args, **kwargs):
     )
 
 
+def _register_export(config, view, path, *args, **kwargs):
+    route_name = getattr(view, '__qualname__', view.__name__)
+
+    for renderer in ['pdf', 'csv']:
+
+        if path.endswith('/'):
+            path_ = '{0}{1}/'.format(path, renderer)
+        else:
+            path_ = '{0}/{1}/'.format(path, renderer)
+
+        route_name_ = "{0}_{1}".format(route_name, renderer)
+
+        config.add_route(route_name_, path_)
+        config.add_view(
+            view, route_name=route_name_,
+            attr=renderer, *args, renderer=renderer,
+            **kwargs
+        )
+
+
 def get_adapted_json_renderer():
     json_renderer = JSON()
 

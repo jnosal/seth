@@ -1,8 +1,10 @@
-import types
+from pyramid.httpexceptions import HTTPError
 
-from seth.tests import UnitTestBase
+from seth.tests import UnitTestBase, IntegrationTestBase
 from seth.tests.models import SampleModel
 from seth import exporting
+from seth.renderers import SethRendererException
+from seth.classy.web import base
 
 
 class ExporterTestCase(UnitTestBase):
@@ -94,3 +96,41 @@ class ExporterTestCase(UnitTestBase):
         self.assertEqual(data['header'], ['smth'])
         self.assertEqual(data['rows'], [[1], [1]])
         self.assertEqual(data['title'], 'abc')
+
+
+class RegisterExportTestCase(IntegrationTestBase):
+
+    def extend_app_configuration(self, config):
+        config.include('seth')
+
+        class SampleExporter(exporting.ExportFactory):
+            title = 'abc'
+            model = SampleModel
+            header = ['smth']
+            properties = [exporting.Field('int_col')]
+
+        class ExportResourceWithoutTemplate(base.ExportResource):
+            export_factory = SampleExporter
+
+        config.register_export_resource(ExportResourceWithoutTemplate, '/test/plain/')
+
+        class ExportResource(base.ExportResource):
+            template = 'asd.txt'
+            export_factory = SampleExporter
+
+        config.register_export_resource(ExportResource, '/test/export/')
+
+    def test_render_pdf_no_template(self):
+        self.assertRaises(HTTPError, lambda: self.app.get('/test/plain/pdf/', expect_errors=True))
+
+    def test_render_pdf_template_specified_but_does_not_exist_so_renderer_exception_is_raised(self):
+        self.assertRaises(SethRendererException, lambda: self.app.get('/test/export/pdf/', expect_errors=True))
+
+    def test_render_csv_no_template(self):
+        self.assertRaises(HTTPError, lambda: self.app.get('/test/plain/csv/', expect_errors=True))
+
+    def test_render_csv_template_specified_but_does_not_exist_so_renderer_exception_is_raised(self):
+        SampleModel.manager.create(int_col=1)
+        SampleModel.manager.create(int_col=1)
+        r = self.app.get('/test/export/csv/', expect_errors=True)
+        self.assertEqual(r.status_int, 200)
