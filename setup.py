@@ -15,6 +15,7 @@ test_requires = [
     'reportlab<3',
     'coverage',
     'colander',
+    'WTForms==2.0.2'
 ]
 
 setup(

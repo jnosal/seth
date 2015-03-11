@@ -1,19 +1,13 @@
 from pyramid.httpexceptions import HTTPNotFound, HTTPMethodNotAllowed,\
     HTTPBadRequest, HTTPUnauthorized
 
+from seth.classy.base import View
 
-class RestResource(object):
+
+class RestResource(View):
     display_version = True
     versioning_policy = None
-
     allowed_methods = []
-    dispatchable_methods = [
-        'GET', 'POST', 'PUT', 'DELETE', 'PATCH',
-        'CONNECT', 'TRACE', 'HEAD', 'OPTIONS'
-    ]
-
-    def __init__(self, request):
-        self.request = request
 
     def perform_setup(self):
         if self.versioning_policy:
@@ -43,10 +37,6 @@ class RestResource(object):
         return self.allowed_methods
 
     @property
-    def request_method(self):
-        return self.request.method
-
-    @property
     def default_response_headers(self):
         headers = [
             ('Allow', ', '.join(self.allowed_methods)),
@@ -70,33 +60,6 @@ class RestResource(object):
             self.request.response.headerlist.extend(headers)
             return response_data
 
-        return self.not_allowed()
-
-    def get(self, **kwargs):
-        return self.not_allowed()
-
-    def post(self, **kwargs):
-        return self.not_allowed()
-
-    def put(self, **kwargs):
-        return self.not_allowed()
-
-    def delete(self, **kwargs):
-        return self.not_allowed()
-
-    def patch(self, **kwargs):
-        return self.not_allowed()
-
-    def head(self, **kwargs):
-        return self.not_allowed()
-
-    def options(self, **kwargs):
-        return self.not_allowed()
-
-    def trace(self, **kwargs):
-        return self.not_allowed()
-
-    def connect(self, **kwargs):
         return self.not_allowed()
 
     def not_allowed(self):

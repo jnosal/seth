@@ -9,13 +9,29 @@ def _register_resource(config, view, path, *args, **kwargs):
 
     attr = 'dispatch'
     renderer = kwargs.pop('renderer', 'json')
+    web = kwargs.pop('web', False)
 
     config.add_route(route_name, path)
-    config.add_view(
-        view, route_name=route_name,
-        attr=attr, *args, renderer=renderer,
-        **kwargs
-    )
+
+    if not web:
+        config.add_view(
+            view, route_name=route_name,
+            attr=attr, *args, renderer=renderer, **kwargs
+        )
+
+    else:
+        # if this is a web resource we optionally register json renderer
+        # which renders context as json object
+        if not renderer == 'json':
+            config.add_view(
+                view, route_name=route_name,
+                attr=attr, *args, renderer=renderer, **kwargs
+            )
+        config.add_view(
+            view, route_name=route_name,
+            attr=attr, *args, renderer='json',
+            accept="application/json", **kwargs
+        )
 
 
 def _register_export(config, view, path, *args, **kwargs):
