@@ -15,7 +15,8 @@ test_requires = [
     'reportlab<3',
     'coverage',
     'colander',
-    'WTForms==2.0.2'
+    'WTForms==2.0.2',
+    'pyramid_jinja2==2.3.3'
 ]
 
 setup(

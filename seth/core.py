@@ -25,7 +25,8 @@ def _register_resource(config, view, path, *args, **kwargs):
         if not renderer == 'json':
             config.add_view(
                 view, route_name=route_name,
-                attr=attr, *args, renderer=renderer, **kwargs
+                attr=attr, *args, renderer=renderer,
+                accept="text/html", **kwargs
             )
         config.add_view(
             view, route_name=route_name,

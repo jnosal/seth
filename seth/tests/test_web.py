@@ -64,6 +64,8 @@ class ProcessFormViewTestCase(IntegrationTestBase):
 
     def extend_app_configuration(self, config):
         config.include('seth')
+        config.include('pyramid_jinja2')
+        config.add_jinja2_search_path('seth.tests:templates/')
 
         class SampleNoForm(generics.ProcessFormView):
             pass
@@ -76,13 +78,19 @@ class ProcessFormViewTestCase(IntegrationTestBase):
             def form_is_valid(self, form):
                 return Response("OK")
 
-        config.register_resource(SampleProcess, '/test/', web=True)
+        config.register_resource(SampleProcess, '/test/', renderer='test_form.jinja2', web=True)
 
     def test_get_no_form_set(self):
         self.assertRaises(NotImplementedError, lambda: self.app.get('/test1/'))
 
+    def test_jinja2_renderer_get_form(self):
+        r = self.app.get('/test/', headers={'Accept': 'text/html'}, expect_errors=True)
+        self.assertIn('textarea', r.body)
+        self.assertIn('field', r.body)
+        self.assertIn('required_field', r.body)
+
     def test_json_renderer_get_form(self):
-        r = self.app.get('/test/', headers={'Content-Type': 'application/json'}, expect_errors=True)
+        r = self.app.get('/test/', headers={'Accept': 'application/json'}, expect_errors=True)
         data = json.loads(r.body)
         self.assertIn('form', data)
         self.assertIn('is_valid', data['form'])
@@ -97,7 +105,7 @@ class ProcessFormViewTestCase(IntegrationTestBase):
         post_data = {
             'field': 'ww'
         }
-        r = self.app.post_json('/test/', post_data, headers={'Content-Type': 'application/json'}, expect_errors=True)
+        r = self.app.post_json('/test/', post_data, headers={'Accept': 'application/json'}, expect_errors=True)
         data = json.loads(r.body)
         self.assertNotEqual({}, data['form']['errors'])
 
@@ -106,7 +114,7 @@ class ProcessFormViewTestCase(IntegrationTestBase):
             'field': 'ww',
             'required_field': 'ss'
         }
-        r = self.app.post_json('/test/', post_data, headers={'Content-Type': 'application/json'}, expect_errors=True)
+        r = self.app.post_json('/test/', post_data, headers={'Accept': 'application/json'}, expect_errors=True)
         self.assertEqual(r.body, "OK")
 
     def test_json_renderer_post_valid_data_use_POST(self):

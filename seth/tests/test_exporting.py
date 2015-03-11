@@ -105,6 +105,8 @@ class RegisterExportTestCase(IntegrationTestBase):
 
     def extend_app_configuration(self, config):
         config.include('seth')
+        config.include('pyramid_jinja2')
+        config.add_jinja2_search_path('seth.tests:templates/')
 
         class SampleExporter(exporting.ExportFactory):
             title = 'abc'
@@ -118,7 +120,7 @@ class RegisterExportTestCase(IntegrationTestBase):
         config.register_export_resource(ExportResourceWithoutTemplate, '/test/plain/')
 
         class ExportResource(web.export.ExportResource):
-            template = 'asd.txt'
+            template = 'test_export.jinja2'
             export_factory = SampleExporter
 
         config.register_export_resource(ExportResource, '/test/export/')
@@ -128,7 +130,7 @@ class RegisterExportTestCase(IntegrationTestBase):
             int_col = filtering.IntegerFilter()
 
         class ExportResourceWithFilter(web.export.ExportResource):
-            template = 'asd.txt'
+            template = 'test_export.jinja2'
             export_factory = SampleExporter
             filter_class = SimpleFactory
 
@@ -137,8 +139,10 @@ class RegisterExportTestCase(IntegrationTestBase):
     def test_render_pdf_no_template(self):
         self.assertRaises(HTTPError, lambda: self.app.get('/test/plain/pdf/', expect_errors=True))
 
-    def test_render_pdf_template_specified_but_does_not_exist_so_renderer_exception_is_raised(self):
-        self.assertRaises(SethRendererException, lambda: self.app.get('/test/export/pdf/', expect_errors=True))
+    def test_render_pdf_template_exists(self):
+        r = self.app.get('/test/export/pdf/', expect_errors=True)
+        self.assertEqual(r.status_int, 200)
+        self.assertTrue(r.body)
 
     def test_render_csv_no_template(self):
         self.assertRaises(HTTPError, lambda: self.app.get('/test/plain/csv/', expect_errors=True))
