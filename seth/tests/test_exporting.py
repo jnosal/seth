@@ -7,7 +7,6 @@ from seth import exporting
 from seth import filtering
 from seth.classy import web
 from seth.classy.web import export
-from seth.renderers import SethRendererException
 
 
 class ExporterTestCase(UnitTestBase):
