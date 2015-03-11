@@ -59,7 +59,6 @@ class DefaultResourceTestCase(UnitTestBase):
 
         view = DefaultResource(self.get_csrf_request())
 
-        self.assertEqual(view.get_authenticators(), ())
         self.assertEqual(view.get_view_name(), 'DefaultResource')
         self.assertEqual(view.get_view_description(), u'')
         self.assertEqual(view.get_allowed_methods(), [])

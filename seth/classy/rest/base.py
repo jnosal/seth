@@ -4,7 +4,6 @@ from pyramid.httpexceptions import HTTPNotFound, HTTPMethodNotAllowed,\
 
 class RestResource(object):
     display_version = True
-    authenticators = ()
     versioning_policy = None
 
     allowed_methods = []
@@ -33,9 +32,6 @@ class RestResource(object):
             return policy.is_allowed(self.request, fetched_version)
 
         return True
-
-    def get_authenticators(self):
-        return ()
 
     def get_view_name(self):
         return self.__class__.__name__
