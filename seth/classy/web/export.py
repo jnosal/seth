@@ -1,24 +1,18 @@
 from pyramid.response import Response
 from pyramid.httpexceptions import HTTPError, HTTPOk
 
+from seth.classy.base import QuerySetMixin
 
-class ExportResource(object):
+
+class ExportResource(QuerySetMixin):
     template = None
     export_factory = None
-    filter_class = None
 
     def __init__(self, request):
         self.request = request
 
-    def get_queryset(self):
+    def get_queryset(self, *args, **kwargs):
         return None
-
-    def filter_queryset(self, qs):
-        if self.filter_class:
-            filter_instance = self.filter_class(qs)
-            return filter_instance.apply(self.request)
-
-        return qs
 
     def run_exporter(self):
         if not self.template:
