@@ -15,8 +15,6 @@ test_requires = [
     'reportlab<3',
     'coverage',
     'colander',
-    'tornado>=4',
-    'sockjs-tornado==1.0.1'
 ]
 
 setup(
@@ -33,11 +31,6 @@ setup(
     author_email = 'jacek.nosal@outlook.com',
     url = 'https://github.com/jnosal/seth',
     keywords = ['sqlalchemy', 'pyramid'],
-    entry_points={
-        'console_scripts': [
-            'sethpusher = seth.pusher.default_server:main',
-        ],
-    },
     classifiers = [
         'Development Status :: 1 - Planning',
         'Intended Audience :: Developers',
