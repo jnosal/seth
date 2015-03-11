@@ -1,6 +1,3 @@
-from pyramid.response import Response
-from pyramid.httpexceptions import HTTPMethodNotAllowed
-
 from seth.classy.web import mixins
 from seth.paginator import paginate
 from seth.classy.web.base import WebResource
@@ -11,14 +8,6 @@ class GenericWebResourceView(mixins.WTFormsSchemaMixin, WebResource):
     paginate = True
     filter_class = None
     lookup_param = u'id'
-
-    def perform_setup(self):
-        pass
-
-    def not_allowed(self):
-        return Response("Method {0} is not allowed".format(
-            self.request_method), status=HTTPMethodNotAllowed.code
-        )
 
     def get_model(self):
         raise NotImplementedError
@@ -52,3 +41,30 @@ class GenericWebResourceView(mixins.WTFormsSchemaMixin, WebResource):
             per_page = default_per_page
 
         return paginate(qs, page, per_page)
+
+
+class ProcessFormView(mixins.ContextMixin,
+                      mixins.ProcessFormMixin,
+                      GenericWebResourceView):
+
+    allowed_methods = ['GET', 'POST']
+
+    def form_is_valid(self, form):
+        raise NotImplementedError
+
+    def form_is_invalid(self, form):
+        return self.get_context_data(form=form)
+
+    def get(self, **kwargs):
+        form = self.get_form(None, None)
+        return self.get_context_data(form=form)
+
+    def post(self, **kwargs):
+        form_data = self.get_form_data(**kwargs)
+        form = self.get_form(form_data=form_data)
+
+        is_valid, errors = self.validate_form(form)
+        if is_valid:
+            return self.form_is_valid(form=form)
+        else:
+            return self.form_is_invalid(form=form)

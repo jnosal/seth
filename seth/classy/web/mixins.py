@@ -1,3 +1,6 @@
+from webob import multidict
+
+
 class BaseFormSchemaMixin(object):
     form = None
 
@@ -12,7 +15,7 @@ class BaseFormSchemaMixin(object):
             )
 
     def get_form_class(self):
-        return None
+        raise NotImplementedError
 
     def get_prefix(self):
         return ''
@@ -29,3 +32,18 @@ class WTFormsSchemaMixin(BaseFormSchemaMixin):
     def validate_form(self, form, **kwargs):
         is_valid = form.validate()
         return is_valid, form.errors
+
+
+class ContextMixin(object):
+
+    def get_context_data(self, **kwargs):
+        return kwargs
+
+
+class ProcessFormMixin(object):
+
+    def get_form_data(self, **kwargs):
+        try:
+            return multidict.MultiDict(self.request.json_body)
+        except ValueError:
+            return self.request.POST
