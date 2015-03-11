@@ -2,9 +2,12 @@ from pyramid.httpexceptions import HTTPError
 
 from seth.tests import UnitTestBase, IntegrationTestBase
 from seth.tests.models import SampleModel
+
 from seth import exporting
+from seth import filtering
+from seth.classy import web
+from seth.classy.web import export
 from seth.renderers import SethRendererException
-from seth.classy.web import base
 
 
 class ExporterTestCase(UnitTestBase):
@@ -109,16 +112,27 @@ class RegisterExportTestCase(IntegrationTestBase):
             header = ['smth']
             properties = [exporting.Field('int_col')]
 
-        class ExportResourceWithoutTemplate(base.ExportResource):
+        class ExportResourceWithoutTemplate(web.export.ExportResource):
             export_factory = SampleExporter
 
         config.register_export_resource(ExportResourceWithoutTemplate, '/test/plain/')
 
-        class ExportResource(base.ExportResource):
+        class ExportResource(web.export.ExportResource):
             template = 'asd.txt'
             export_factory = SampleExporter
 
         config.register_export_resource(ExportResource, '/test/export/')
+
+        class SimpleFactory(filtering.FilterFactory):
+            model = SampleModel
+            int_col = filtering.IntegerFilter()
+
+        class ExportResourceWithFilter(web.export.ExportResource):
+            template = 'asd.txt'
+            export_factory = SampleExporter
+            filter_class = SimpleFactory
+
+        config.register_export_resource(ExportResourceWithFilter, '/test/filter_export/')
 
     def test_render_pdf_no_template(self):
         self.assertRaises(HTTPError, lambda: self.app.get('/test/plain/pdf/', expect_errors=True))
@@ -134,3 +148,30 @@ class RegisterExportTestCase(IntegrationTestBase):
         SampleModel.manager.create(int_col=1)
         r = self.app.get('/test/export/csv/', expect_errors=True)
         self.assertEqual(r.status_int, 200)
+
+    def test_got_to_default_path_returns_response_with_message(self):
+        r = self.app.get('/test/plain/', expect_errors=True)
+        self.assertEqual(r.status_int, 200)
+        self.assertEqual(r.body, "Go to /csv/ or /pdf/ to view export")
+
+    def test_export_resource_with_filter_class_specified(self):
+        SampleModel.manager.create(int_col=1)
+        SampleModel.manager.create(int_col=3)
+
+        r = self.app.get('/test/filter_export/csv/?int_col=3', expect_errors=True)
+        self.assertEqual(r.status_int, 200)
+        self.assertIn('smth', r.body)
+        self.assertIn('3', r.body)
+        self.assertNotIn('1', r.body)
+
+        r = self.app.get('/test/filter_export/csv/?int_col=1', expect_errors=True)
+        self.assertIn('smth', r.body)
+        self.assertEqual(r.status_int, 200)
+        self.assertIn('1', r.body)
+        self.assertNotIn('3', r.body)
+
+        r = self.app.get('/test/filter_export/csv/?int_col=2', expect_errors=True)
+        self.assertIn('smth', r.body)
+        self.assertEqual(r.status_int, 200)
+        self.assertNotIn('3', r.body)
+        self.assertNotIn('1', r.body)
