@@ -77,3 +77,8 @@ def get_adapted_json_renderer():
     json_renderer.add_adapter(decimal.Decimal, decimal_adapter)
 
     return json_renderer
+
+
+def register_query_listener(config, engine, threshold=10):
+    from seth.helpers.ext.sa import setup_query_listener
+    setup_query_listener(engine, threshold)
