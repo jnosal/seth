@@ -156,7 +156,7 @@ class BaseFilterFactory(object):
         if not order in ['asc', 'desc']:
             order = None
 
-        return sort_by, order
+        return sort_by, order 
 
     def process_sort_by_and_order(self, qs, request, sort_by, order):
         return qs.order_by("%s %s" % (sort_by, order))

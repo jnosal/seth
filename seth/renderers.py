@@ -47,13 +47,13 @@ class PdfRenderer(BaseSethRenderer):
         buff = StringIO()
 
         if not 'template' in value and not 'html' in value:
-            raise SethRendererException("No template nor html provided")
+            raise SethRendererException(u"No template nor html provided")
 
         if not 'html' in value:
             try:
                 html = self.render_template(value['template'], value, request)
             except ValueError:
-                raise SethRendererException("Wrong renderer factory conf")
+                raise SethRendererException(u"Wrong renderer factory conf")
         else:
             html = value['html']
 
@@ -82,7 +82,7 @@ class CsvRenderer(BaseSethRenderer):
     def __call__(self, value, system):
         request = system['request']
         if not 'rows' in value:
-            raise SethRendererException("No rows provided")
+            raise SethRendererException(u"No rows provided")
 
         buff = StringIO()
         writer = UnicodeWriter(buff, encoding='utf-8')

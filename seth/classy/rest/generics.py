@@ -1,5 +1,5 @@
-from seth.classy.base import QuerySetMixin
 from seth.classy.rest import mixins
+from seth.classy.base import QuerySetMixin
 from seth.classy.rest.base import RestResource
 
 
