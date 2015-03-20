@@ -16,14 +16,17 @@ from seth import db
 from seth.tests.base import ExtendedTestApp
 from seth.tests.models import Base
 here = os.path.dirname(__file__)
-settings = appconfig('config:' + resource_filename(__name__, 'test.ini'))
+
+
+def get_settings():
+    return appconfig('config:' + resource_filename(__name__, 'test.ini'))
 
 
 class BaseTestCase(unittest.TestCase):
 
     @classmethod
     def setUpClass(cls):
-        cls.engine = engine_from_config(settings, prefix='sqlalchemy.')
+        cls.engine = engine_from_config(get_settings(), prefix='sqlalchemy.')
         maker = scoped_session(sessionmaker(
             extension=ZopeTransactionExtension()
         ))
@@ -79,7 +82,7 @@ class IntegrationTestBase(BaseTestCase):
 
     def main(self, global_config, **settings):
         config = global_config
-        config.add_settings(settings)
+        config.add_settings(**get_settings())
         app = config.make_wsgi_app()
         return app
 
@@ -89,5 +92,5 @@ class IntegrationTestBase(BaseTestCase):
     def setUp(self):
         super(IntegrationTestBase, self).setUp()
         self.extend_app_configuration(self.config)
-        app = self.main(self.config, **settings)
+        app = self.main(self.config, **get_settings())
         self.app = ExtendedTestApp(app)
