@@ -81,6 +81,10 @@ Classy Api
     :undoc-members:
     :show-inheritance:
 
+.. automodule:: seth.classy.rest.utils
+    :members:
+    :undoc-members:
+    :show-inheritance:
 
 .. automodule:: seth.classy.rest.mixins
     :members:

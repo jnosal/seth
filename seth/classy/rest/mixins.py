@@ -5,6 +5,7 @@ from pyramid.httpexceptions import HTTPCreated, HTTPOk
 
 from seth import db
 from seth.db import mixins as db_mixins
+from seth.classy.rest.utils import ResponseStatus
 
 
 class BaseSchemaMixin(object):
@@ -28,15 +29,15 @@ class BaseSchemaMixin(object):
         return data
 
     def dump_schema(self, schema_class, data):
-        # Must return serialized structure
-        # override if schema is handled differently
+        # Must return serialized structure.
+        # Override if schema is handled differently.
         data = self.prepare_data_to_dump(data)
         results = schema_class.dump(data)
         return results.data
 
     def load_schema(self, schema_class, data):
-        # Must return data, errors tuple
-        # override if schema is handled differently
+        # Must return data, errors tuple.
+        # Override if schema is handled differently.
         data = self.prepare_data_to_load(data)
         return schema_class.load(data)
 
@@ -119,7 +120,7 @@ class CreateResourceMixin(object):
     def created(self):
         self.request.response.status_int = HTTPCreated.code
         return {
-            'status': 'Created'
+            'status': ResponseStatus.CREATED
         }
 
     def prepare_serialized_data(self, data):
@@ -185,7 +186,7 @@ class DeleteResourceMixin(RetrieveResourceMixin):
     def deleted(self):
         self.request.response.status_int = HTTPOk.code
         return {
-            'status': 'Deleted'
+            'status': ResponseStatus.DELETED
         }
 
     def remove(self, **kwargs):
@@ -211,7 +212,7 @@ class PatchResourceMixin(RetrieveResourceMixin):
     def patched(self):
         self.request.response.status_int = HTTPOk.code
         return {
-            'status': 'Patched'
+            'status': ResponseStatus.PATCHED
         }
 
     def modify(self, **kwargs):
@@ -240,7 +241,7 @@ class UpdateResourceMixin(RetrieveResourceMixin):
     def updated(self):
         self.request.response.status_int = HTTPOk.code
         return {
-            'status': 'Updated'
+            'status': ResponseStatus.UPDATED
         }
 
     def update(self, **kwargs):
