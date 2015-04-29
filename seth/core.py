@@ -1,7 +1,12 @@
 import decimal
 import datetime
+import logging
 
 from pyramid.renderers import JSON
+from pyramid.events import NewRequest
+
+
+logger = logging.getLogger('seth.tenancy')
 
 
 def _register_resource(config, view, path, *args, **kwargs):
@@ -82,3 +87,22 @@ def get_adapted_json_renderer():
 def register_query_listener(config, engine, threshold=10):
     from seth.helpers.ext.sa import setup_query_listener
     setup_query_listener(engine, threshold)
+
+
+def _register_tenancy(config, TenantModel):
+    from seth import db
+    from seth import tenancy
+
+    tenancy.Meta.TenantModel = TenantModel
+
+    session = db.get_session()
+    dialect = session.connection().engine.url.get_dialect()
+
+    if dialect.name in tenancy.supported_dialects:
+        config.add_subscriber(tenancy.set_search_path, NewRequest)
+    else:
+        msg = 'Cannot register tenancy. Dialect: {0} is not supported'.format(
+            dialect.name
+        )
+        logger.error(msg)
+        raise RuntimeError(msg)

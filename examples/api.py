@@ -80,7 +80,7 @@ if __name__ == '__main__':
     ))
     maker.configure(bind=engine)
     # register maker for seth db
-    db.register_maker(maker)
+    db.register_maker(maker=maker)
     Base.metadata.bind = engine
     Base.metadata.create_all(engine)
 
@@ -95,7 +95,6 @@ if __name__ == '__main__':
     config.register_resource(SampleApiView, '/test/')
     config.register_resource(SampleModelApiView, '/test_pager/')
     config.register_resource(SampleModelNoPaginateApiView, '/test_no_pager/')
-
     app = config.make_wsgi_app()
     server = make_server('0.0.0.0', 6543, app)
     server.serve_forever()

@@ -11,6 +11,11 @@ from seth.db.managers import BaseManager
 Base = declarative_base(cls=BaseModelMixin)
 
 
+class Tenant(Base):
+    domain_url = sa.Column(sa.Unicode(128), unique=True)
+    schema_name = sa.Column(sa.Unicode(63), unique=True)
+
+
 class SampleModel(Base):
     int_col = sa.Column(sa.Integer)
     dec_col = sa.Column(sa.Numeric)

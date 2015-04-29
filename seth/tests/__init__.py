@@ -7,9 +7,12 @@ from pkg_resources import resource_filename
 
 from mock import Mock
 from pyramid import testing
+import sqlalchemy as sa
 from sqlalchemy import engine_from_config
-from paste.deploy.loadwsgi import appconfig
+from sqlalchemy.exc import ProgrammingError
 from sqlalchemy.orm import scoped_session, sessionmaker
+from paste.deploy.loadwsgi import appconfig
+
 from zope.sqlalchemy import ZopeTransactionExtension
 
 from seth import db
@@ -25,13 +28,17 @@ def get_settings():
 class BaseTestCase(unittest.TestCase):
 
     @classmethod
+    def get_engine(cls):
+        return engine_from_config(get_settings(), prefix='sqlalchemy.')
+
+    @classmethod
     def setUpClass(cls):
-        cls.engine = engine_from_config(get_settings(), prefix='sqlalchemy.')
+        cls.engine = cls.get_engine()
         maker = scoped_session(sessionmaker(
             extension=ZopeTransactionExtension()
         ))
         maker.configure(bind=cls.engine)
-        db.register_maker(maker)
+        db.register_maker(maker=maker)
         Base.metadata.bind = cls.engine
         Base.metadata.create_all(cls.engine)
 
@@ -94,3 +101,29 @@ class IntegrationTestBase(BaseTestCase):
         self.extend_app_configuration(self.config)
         app = self.main(self.config, **get_settings())
         self.app = ExtendedTestApp(app)
+
+
+class PostgresqlDatabaseMixin(BaseTestCase):
+    test_database = 'seth_test'
+
+    @classmethod
+    def get_engine(cls):
+        settings = get_settings()
+        with sa.create_engine(
+            'postgresql://postgres@localhost/postgres',
+            isolation_level='AUTOCOMMIT'
+        ).connect() as connection:
+            try:
+                connection.execute('DROP DATABASE IF EXISTS {0}'.format(
+                    cls.test_database
+                ))
+                connection.execute('CREATE DATABASE {0}'.format(
+                    cls.test_database
+                ))
+            except ProgrammingError as e:
+                pass
+
+        settings['sqlalchemy.url'] = 'postgresql:///{0}'.format(
+            cls.test_database
+        )
+        return engine_from_config(settings, prefix='sqlalchemy.')
