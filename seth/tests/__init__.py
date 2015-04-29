@@ -123,7 +123,7 @@ class PostgresqlDatabaseMixin(BaseTestCase):
             except ProgrammingError as e:
                 pass
 
-        settings['sqlalchemy.url'] = 'postgresql:///{0}'.format(
+        settings['sqlalchemy.url'] = 'postgresql://postgres@localhost/{0}'.format(
             cls.test_database
         )
         return engine_from_config(settings, prefix='sqlalchemy.')

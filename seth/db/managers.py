@@ -54,7 +54,7 @@ class BaseManager(object):
             kwargs.pop(param, None)
         return kwargs
 
-    def save(self, model):
+    def save(self, model, **kwargs):
         """ Saves model instance.
         Before actual saving it runs `*_isinstance` function.
         """
@@ -168,7 +168,7 @@ class SoloManager(BaseManager):
     """
     default_pk = 1
 
-    def save(self, model):
+    def save(self, model, **kwargs):
         if not self.query.count():
             self._isinstance(model)
             model.id = self.default_pk
@@ -181,3 +181,23 @@ class SoloManager(BaseManager):
     def get_solo(self):
         obj, created = self.get_or_create(id=self.default_pk)
         return obj
+
+
+class TenantManager(BaseManager):
+
+    def save(self, model, create_schema=True, **kwargs):
+        from sqlalchemy.schema import CreateSchema
+        from seth import tenancy
+        public_schema, _ = tenancy.get_public_schema_info()
+        session = db.get_session()
+        tenancy.set_schema_to_public(
+            session=session, public_schema=public_schema
+        )
+
+        super(TenantManager, self).save(model)
+
+        if not model.id and create_schema and model.schema_name != public_schema:
+            session.execute(CreateSchema(model.schema_name))
+            tenancy.set_schema_to_public(
+                session=session, public_schema=public_schema
+            )

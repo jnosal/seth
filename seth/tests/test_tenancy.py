@@ -2,7 +2,7 @@ from pyramid.httpexceptions import HTTPNotFound
 
 from seth.tests import PostgresqlDatabaseMixin, UnitTestBase,\
     IntegrationTestBase
-from seth.tenancy import get_domain_url_from_request
+from seth.tenancy import get_domain_url_from_request, schema_context
 from seth.tests.models import Tenant
 
 
@@ -48,3 +48,24 @@ class PostgresqlTenantTestCase(PostgresqlDatabaseMixin, IntegrationTestBase):
         Tenant.manager.create(schema_name='public', domain_url='localhost')
         r = self.app.get('/', expect_errors=True)
         self.assertEqual(r.status_int, 200)
+
+    def test_schema_context_schema_does_not_exist(self):
+        Tenant.manager.create(schema_name='test1', domain_url='test.com')
+
+        with self.assertRaises(HTTPNotFound):
+            with schema_context(schema_name='does_not_exist'):
+                pass
+
+    def test_schema_context_schema_exists_use_schema_name(self):
+        Tenant.manager.create(schema_name='test1', domain_url='test1.com')
+        Tenant.manager.create(schema_name='test2', domain_url='test2.com')
+
+        with schema_context(schema_name='test1'):
+            pass
+
+    def test_schema_context_schema_exists_use_schema_domain_url(self):
+        Tenant.manager.create(schema_name='test1', domain_url='test1.com')
+        Tenant.manager.create(schema_name='test2', domain_url='test2.com')
+
+        with schema_context(schema_name='test1'):
+            pass
