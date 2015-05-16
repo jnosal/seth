@@ -3,6 +3,9 @@ import logging
 import traceback
 
 from sqlalchemy import event
+from sqlalchemy.ext.compiler import compiles
+from sqlalchemy.sql.expression import Executable, ClauseElement,\
+    _literal_as_text
 
 logger = logging.getLogger('seth')
 
@@ -28,3 +31,20 @@ def setup_query_listener(engine, threshold):
                           line][:-1])
             params = (total, parameters,)
             logger.warning('Slow Query. Time: %s, parameters: %s' % params)
+
+
+class explain(Executable, ClauseElement):
+
+    def __init__(self, stmt, analyze=False):
+        self.statement = _literal_as_text(stmt)
+        self.analyze = analyze
+        self.inline = getattr(stmt, 'inline', None)
+
+
+@compiles(explain, 'postgresql')
+def pg_explain(element, compiler, **kw):
+    text = "EXPLAIN "
+    if element.analyze:
+        text += "ANALYZE "
+    text += compiler.process(element.statement, **kw)
+    return text

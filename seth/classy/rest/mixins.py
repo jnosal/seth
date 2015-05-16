@@ -115,7 +115,6 @@ class CreateResourceMixin(object):
         session = db.get_session()
         session.add(instance)
         session.flush()
-        return instance
 
     def created(self):
         self.request.response.status_int = HTTPCreated.code
@@ -181,7 +180,6 @@ class DeleteResourceMixin(RetrieveResourceMixin):
         session = db.get_session()
         session.delete(instance)
         session.flush()
-        return instance
 
     def deleted(self):
         self.request.response.status_int = HTTPOk.code
@@ -207,7 +205,6 @@ class PatchResourceMixin(RetrieveResourceMixin):
             setattr(instance, name, value)
 
         session.flush()
-        return instance
 
     def patched(self):
         self.request.response.status_int = HTTPOk.code
@@ -236,10 +233,10 @@ class UpdateResourceMixin(RetrieveResourceMixin):
             setattr(instance, name, value)
 
         session.flush()
-        return instance
 
     def updated(self):
         self.request.response.status_int = HTTPOk.code
+
         return {
             'status': ResponseStatus.UPDATED
         }
