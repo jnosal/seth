@@ -5,10 +5,19 @@ import sqlalchemy as sa
 from sqlalchemy.ext.declarative import declarative_base, declared_attr
 
 from seth.db.mixins import BaseModelMixin
-from seth.db.managers import BaseManager
+from seth.db.managers import BaseManager, TenantManager
 
 
 Base = declarative_base(cls=BaseModelMixin)
+
+
+class Tenant(Base):
+    domain_url = sa.Column(sa.Unicode(128), unique=True)
+    schema_name = sa.Column(sa.Unicode(63), unique=True)
+
+    @declared_attr
+    def manager(cls):
+        return TenantManager(model_class=cls)
 
 
 class SampleModel(Base):

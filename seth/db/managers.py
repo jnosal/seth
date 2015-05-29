@@ -54,7 +54,7 @@ class BaseManager(object):
             kwargs.pop(param, None)
         return kwargs
 
-    def save(self, model):
+    def save(self, model, **kwargs):
         """ Saves model instance.
         Before actual saving it runs `*_isinstance` function.
         """
@@ -102,7 +102,7 @@ class BaseManager(object):
 
         obj = self.model_class.query.filter_by(**kwargs).first()
         if not obj:
-            raise HTTPNotFound(detail=u"Object doest not exist")
+            raise HTTPNotFound(u"Object doest not exist")
         return obj
 
     def get_or_create(self, **kwargs):
@@ -160,3 +160,44 @@ class BaseManager(object):
     def paginate(self, filters=None, page=1, per_page=20, **kwargs):
         qs = self.filter_query(self.query, filters)
         return paginate(qs, page, per_page, **kwargs)
+
+
+class SoloManager(BaseManager):
+    """
+        Allows to store only one entry in table.
+    """
+    default_pk = 1
+
+    def save(self, model, **kwargs):
+        if not self.query.count():
+            self._isinstance(model)
+            model.id = self.default_pk
+            db.get_session().add(model)
+        return model
+
+    def get(self, id):
+        raise ValueError
+
+    def get_solo(self):
+        obj, created = self.get_or_create(id=self.default_pk)
+        return obj
+
+
+class TenantManager(BaseManager):
+
+    def save(self, model, create_schema=True, **kwargs):
+        from sqlalchemy.schema import CreateSchema
+        from seth import tenancy
+        public_schema, _ = tenancy.get_public_schema_info()
+        session = db.get_session()
+        tenancy.set_schema_to_public(
+            session=session, public_schema=public_schema
+        )
+
+        super(TenantManager, self).save(model)
+
+        if not model.id and create_schema and model.schema_name != public_schema:
+            session.execute(CreateSchema(model.schema_name))
+            tenancy.set_schema_to_public(
+                session=session, public_schema=public_schema
+            )

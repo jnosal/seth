@@ -1,11 +1,13 @@
 from setuptools import setup, find_packages
 
+
 requires = [
     'SQLAlchemy>=0.9',
     'pyramid>=1.5',
     'zope.sqlalchemy',
     'marshmallow>=1.0.0'
 ]
+
 
 test_requires = [
     'mock',
@@ -16,8 +18,10 @@ test_requires = [
     'coverage',
     'colander',
     'WTForms==2.0.2',
-    'pyramid_jinja2==2.3.3'
+    'pyramid_jinja2==2.3.3',
+    'psycopg2'
 ]
+
 
 setup(
     name = 'seth',
@@ -32,7 +36,9 @@ setup(
     author = 'jnosal',
     author_email = 'jacek.nosal@outlook.com',
     url = 'https://github.com/jnosal/seth',
-    keywords = ['sqlalchemy', 'pyramid'],
+    keywords = [
+        'sqlalchemy', 'pyramid'
+    ],
     classifiers = [
         'Development Status :: 1 - Planning',
         'Intended Audience :: Developers',

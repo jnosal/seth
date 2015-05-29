@@ -31,7 +31,7 @@ def csp_tween_factory(handler, registry):
 
         csp_headers = ['Content-Security-Policy', 'X-WebKit-CSP']
 
-        prefixes = settings.get('csp.exclude_prefixes', ('/admin'))
+        prefixes = settings.get('csp.exclude_prefixes', ('/admin',))
 
         if request.path.startswith(prefixes):
             return handler(request)

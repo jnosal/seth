@@ -45,7 +45,7 @@ if __name__ == '__main__':
         extension=ZopeTransactionExtension()
     ))
     maker.configure(bind=engine)
-    db.register_maker(maker)
+    db.register_maker(maker=maker)
     Base.metadata.bind = engine
     Base.metadata.create_all(engine)
 

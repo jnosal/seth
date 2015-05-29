@@ -3,18 +3,18 @@ from decimal import Decimal
 from pyramid.httpexceptions import HTTPNotFound
 
 from seth import db
-from seth.db.managers import BaseManager
 from seth.tests import UnitTestBase
+from seth.db.managers import BaseManager, SoloManager
 from seth.tests.models import SampleModel, PredefinedModel
 
 
 class ManagerTestCase(UnitTestBase):
 
     def test_assert_raises_not_initialized_exception_when_db_is_not_initialized(self):
-        old_maker = db._DBSession.maker
-        db._DBSession.maker = None
+        old_maker = db.Meta.maker
+        db.Meta.maker = None
         self.assertRaises(db.SessionNotInitializedException, lambda: db.get_session())
-        db._DBSession.maker = old_maker
+        db.Meta.maker = old_maker
 
     def test_basic_manager(self):
         model = SampleModel()
@@ -155,3 +155,25 @@ class IndependantManagerTestCase(UnitTestBase):
         self.assertEqual(manager.query.count(), 0)
         manager.create(**{})
         self.assertEqual(manager.query.count(), 1)
+
+
+class SoloManagerTestCase(UnitTestBase):
+
+    def test_solo_manager(self):
+        manager = SoloManager(model_class=SampleModel)
+        self.assertEqual(manager.query.count(), 0)
+        manager.create(**{})
+        self.assertEqual(manager.query.count(), 1)
+        manager.create(**{})
+        self.assertEqual(manager.query.count(), 1)
+        self.assertNotEqual(manager.get_solo(), None)
+
+    def test_get_solo_nothing_exist(self):
+        manager = SoloManager(model_class=SampleModel)
+        self.assertEqual(manager.query.count(), 0)
+        self.assertNotEqual(manager.get_solo(), None)
+        self.assertEqual(manager.query.count(), 1)
+
+    def test_get_raises_ValueError_for_solo_manager(self):
+        manager = SoloManager(model_class=SampleModel)
+        self.assertRaises(ValueError, lambda: manager.get(id=1))
