@@ -116,7 +116,7 @@ class CreateResourceMixin(object):
         session.add(instance)
         session.flush()
 
-    def created(self):
+    def created(self, instance):
         self.request.response.status_int = HTTPCreated.code
         return {
             'status': ResponseStatus.CREATED
@@ -142,7 +142,7 @@ class CreateResourceMixin(object):
             instance = model_class(**data)
 
             self.handle_creation(instance)
-            return self.created()
+            return self.created(instance)
 
         return self.bad_request(errors)
 
@@ -187,7 +187,7 @@ class DeleteResourceMixin(RetrieveResourceMixin):
         session.delete(instance)
         session.flush()
 
-    def deleted(self):
+    def deleted(self, instance):
         self.request.response.status_int = HTTPOk.code
         return {
             'status': ResponseStatus.DELETED
@@ -200,7 +200,7 @@ class DeleteResourceMixin(RetrieveResourceMixin):
             return self.not_found()
 
         self.handle_deletion(instance)
-        return self.deleted()
+        return self.deleted(instance)
 
 
 class PatchResourceMixin(RetrieveResourceMixin):
@@ -212,7 +212,7 @@ class PatchResourceMixin(RetrieveResourceMixin):
 
         session.flush()
 
-    def patched(self):
+    def patched(self, instance):
         self.request.response.status_int = HTTPOk.code
         return {
             'status': ResponseStatus.PATCHED
@@ -232,7 +232,7 @@ class PatchResourceMixin(RetrieveResourceMixin):
 
         if not errors:
             self.handle_patch(instance, data)
-            return self.patched()
+            return self.patched(instance)
 
         return self.bad_request(errors)
 
@@ -246,7 +246,7 @@ class UpdateResourceMixin(RetrieveResourceMixin):
 
         session.flush()
 
-    def updated(self):
+    def updated(self, instance):
         self.request.response.status_int = HTTPOk.code
 
         return {
@@ -267,6 +267,6 @@ class UpdateResourceMixin(RetrieveResourceMixin):
 
         if not errors:
             self.handle_update(instance, data)
-            return self.updated()
+            return self.updated(instance)
 
         return self.bad_request(errors)
