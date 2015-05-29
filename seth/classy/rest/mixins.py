@@ -133,7 +133,7 @@ class CreateResourceMixin(object):
         try:
             json_data = self.request.json_body
         except ValueError as e:
-            return self.bad_request(str(e))
+            return self.bad_request([str(e)])
 
         data, errors = self.load_schema(schema, json_data)
 
@@ -226,7 +226,7 @@ class PatchResourceMixin(RetrieveResourceMixin):
         try:
             json_data = self.request.json_body
         except ValueError as e:
-            return self.bad_request(str(e))
+            return self.bad_request([str(e)])
 
         data, errors = self.load_schema(schema, json_data)
 
@@ -261,7 +261,7 @@ class UpdateResourceMixin(RetrieveResourceMixin):
         try:
             json_data = self.request.json_body
         except ValueError as e:
-            return self.bad_request(str(e))
+            return self.bad_request([str(e)])
 
         data, errors = self.load_schema(schema, json_data)
 
