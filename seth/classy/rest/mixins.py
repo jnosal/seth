@@ -83,7 +83,8 @@ class RetrieveResourceMixin(object):
     def retrieve(self, with_schema=True):
         qs = self.get_queryset()
         id_ = self.request.matchdict[self.lookup_param]
-        instance = qs.get(id_)
+
+        instance = qs.filter_by(**{self.lookup_param: id_}).first()
 
         if with_schema:
             schema = self._get_schema(many=False)
