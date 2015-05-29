@@ -1,6 +1,5 @@
 import sqlalchemy as sa
 
-from pyramid.renderers import render
 from pyramid.config import Configurator
 
 from sqlalchemy import engine_from_config

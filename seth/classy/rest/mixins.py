@@ -129,7 +129,13 @@ class CreateResourceMixin(object):
 
         model_class = self.model if self.model else self.get_model()
         schema = self._get_schema(many=False)
-        data, errors = self.load_schema(schema, self.request.json_body)
+
+        try:
+            json_data = self.request.json_body
+        except ValueError as e:
+            return self.bad_request(str(e))
+
+        data, errors = self.load_schema(schema, json_data)
 
         if not errors:
             data = self.prepare_serialized_data(data)
@@ -217,7 +223,13 @@ class PatchResourceMixin(RetrieveResourceMixin):
         if not instance:
             return self.not_found()
 
-        data, errors = self.load_schema(schema, self.request.json_body)
+        try:
+            json_data = self.request.json_body
+        except ValueError as e:
+            return self.bad_request(str(e))
+
+        data, errors = self.load_schema(schema, json_data)
+
         if not errors:
             self.handle_patch(instance, data)
             return self.patched()
@@ -246,7 +258,13 @@ class UpdateResourceMixin(RetrieveResourceMixin):
         if not instance:
             return self.not_found()
 
-        data, errors = self.load_schema(schema, self.request.json_body)
+        try:
+            json_data = self.request.json_body
+        except ValueError as e:
+            return self.bad_request(str(e))
+
+        data, errors = self.load_schema(schema, json_data)
+
         if not errors:
             self.handle_update(instance, data)
             return self.updated()

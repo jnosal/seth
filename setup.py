@@ -31,7 +31,7 @@ setup(
     include_package_data = True,
     zip_safe = False,
     test_suite = "nose.collector",
-    version = '0.3',
+    version = '0.3.1',
     description = 'Smart and practical set of utilities for Pyramid framework',
     author = 'jnosal',
     author_email = 'jacek.nosal@outlook.com',
