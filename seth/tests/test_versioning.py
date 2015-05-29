@@ -1,7 +1,6 @@
 from seth import versioning
 from seth.tests import IntegrationTestBase
 from seth.classy.rest import generics
-from seth.tests.models import SampleModel
 
 
 class DefaultVersioningResource(generics.GenericApiView):

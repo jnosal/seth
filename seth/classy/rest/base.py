@@ -7,9 +7,16 @@ from seth.classy.base import View
 class RestResource(View):
     display_version = True
     versioning_policy = None
+    authentication_policy = None
     allowed_methods = []
 
     def perform_setup(self):
+        authenticated = True
+
+        if self.authentication_policy:
+            policy = self.authentication_policy()
+            authenticated = policy.authenticate(self.request)
+
         if self.versioning_policy:
             policy = self.versioning_policy()
             version = policy.get_default_version(self.request)
@@ -18,6 +25,7 @@ class RestResource(View):
             version = settings.get('seth.default_api_version', '1.0')
 
         self.request.version = version
+        self.request.authenticated = authenticated
 
     def validate_version(self):
         if self.versioning_policy:
@@ -49,6 +57,9 @@ class RestResource(View):
 
     def dispatch(self, **kwargs):
         self.perform_setup()
+
+        if not self.request.authenticated:
+            return self.not_authorized()
 
         if self.request_method in self.dispatchable_methods:
             if not self.validate_version():
