@@ -48,10 +48,7 @@ class BaseManager(object):
             raise ValueError('%s is not of type %s' % (model, self.model_class))
         return rv
 
-    def _preprocess_params(self, kwargs):
-        banned_params = []
-        for param in banned_params:
-            kwargs.pop(param, None)
+    def validate_params(self, kwargs):
         return kwargs
 
     def save(self, model, **kwargs):
@@ -66,7 +63,7 @@ class BaseManager(object):
         """ Returns new model instance initialized with data
         found in `*kwargs`
         """
-        return self.model_class(**self._preprocess_params(kwargs))
+        return self.model_class(**self.validate_params(kwargs))
 
     def create(self, **kwargs):
         """ Returns new model instance initialized with data
@@ -136,7 +133,7 @@ class BaseManager(object):
 
     def update(self, model, **kwargs):
         self._isinstance(model)
-        for k, v in self._preprocess_params(kwargs).items():
+        for k, v in self.validate_params(kwargs).iteritems():
             setattr(model, k, v)
         self.save(model)
         return model

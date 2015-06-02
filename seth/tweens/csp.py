@@ -16,8 +16,11 @@ def build_csp_policy(settings):
         'sandbox': parse_setting('csp.sandbox', settings),
     }
 
-    policy = ['{0} {1}'.format(k, ' '.join(v)) for (k,v) in
-              config.iteritems() if v]
+    policy = [
+        '{0} {1}'.format(k, ' '.join(v))
+        for (k, v)
+        in config.iteritems() if v
+    ]
     if settings.get('csp.report_uri', None):
         policy.append('report-uri {0}'.format(settings.get('csp.report_uri')))
 

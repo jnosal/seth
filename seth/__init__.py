@@ -1,6 +1,7 @@
 from seth.core import _register_resource, _register_export,\
     _register_tenancy, get_adapted_json_renderer, _register_query_listener
 from seth.renderers import CsvRenderer, PdfRenderer
+from seth.core import ValidationError
 
 
 def includeme(config):

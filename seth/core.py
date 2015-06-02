@@ -9,6 +9,10 @@ from pyramid.events import NewRequest
 logger = logging.getLogger('seth.tenancy')
 
 
+class ValidationError(Exception):
+    pass
+
+
 def _register_resource(config, view, path, *args, **kwargs):
     route_name = getattr(view, '__qualname__', view.__name__)
 

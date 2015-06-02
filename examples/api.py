@@ -2,12 +2,10 @@ from pyramid.config import Configurator
 from wsgiref.simple_server import make_server
 
 import sqlalchemy as sa
-
 from sqlalchemy import engine_from_config
 from sqlalchemy.orm import scoped_session, sessionmaker
 from sqlalchemy.ext.declarative.api import declarative_base
 from zope.sqlalchemy import ZopeTransactionExtension
-
 from marshmallow import Schema, fields
 
 from seth import db

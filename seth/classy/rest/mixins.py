@@ -103,10 +103,10 @@ class ReadResourceMixin(RetrieveResourceMixin):
         if not instance:
             return self.not_found()
 
-        results = self.dump_schema(schema, instance)
+        result = self.dump_schema(schema, instance)
         self.handle_read(instance)
         return {
-            'object': results
+            'object': result
         }
 
 
@@ -114,7 +114,7 @@ class CreateResourceMixin(object):
 
     def handle_creation(self, instance):
         session = db.get_session()
-        session.add(instance)
+        instance.manager.save(model=instance)
         session.flush()
 
     def created(self, instance):
@@ -140,7 +140,7 @@ class CreateResourceMixin(object):
 
         if not errors:
             data = self.prepare_serialized_data(data)
-            instance = model_class(**data)
+            instance = model_class.manager.new(**data)
 
             self.handle_creation(instance)
             return self.created(instance)
@@ -177,7 +177,7 @@ class ListResourceMixin(object):
 
         results = self.dump_schema(schema, qs)
         return {
-            'results': results
+            'items': results
         }
 
 
@@ -185,7 +185,7 @@ class DeleteResourceMixin(RetrieveResourceMixin):
 
     def handle_deletion(self, instance):
         session = db.get_session()
-        session.delete(instance)
+        instance.manager.delete(model=instance)
         session.flush()
 
     def deleted(self, instance):
@@ -208,9 +208,7 @@ class PatchResourceMixin(RetrieveResourceMixin):
 
     def handle_patch(self, instance, data):
         session = db.get_session()
-        for name, value in data.iteritems():
-            setattr(instance, name, value)
-
+        instance.manager.update(model=instance, **data)
         session.flush()
 
     def patched(self, instance):
@@ -242,9 +240,7 @@ class UpdateResourceMixin(RetrieveResourceMixin):
 
     def handle_update(self, instance, data):
         session = db.get_session()
-        for name, value in data.iteritems():
-            setattr(instance, name, value)
-
+        instance.manager.update(model=instance, **data)
         session.flush()
 
     def updated(self, instance):

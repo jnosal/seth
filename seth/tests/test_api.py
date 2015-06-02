@@ -163,15 +163,15 @@ class BasicListResourceTestCase(IntegrationTestBase):
     def test_get_list_no_model_exists(self):
         r = self.app.get('/test_list', expect_errors=True)
         data = json.loads(r.body)
-        self.assertIn('results', data)
-        self.assertEqual(data['results'], [])
+        self.assertIn('items', data)
+        self.assertEqual(data['items'], [])
 
     def test_get_list_db_is_not_empty(self):
         self.session.add(SampleModel(int_col=1, dec_col=3))
         self.session.flush()
         r = self.app.get('/test_list', expect_errors=True)
         data = json.loads(r.body)
-        self.assertEqual(len(data['results']), 1)
+        self.assertEqual(len(data['items']), 1)
 
     def test_get_paginated_list_no_model_exists(self):
         r = self.app.get('/test_paginated_list', expect_errors=True)
@@ -190,10 +190,10 @@ class BasicListResourceTestCase(IntegrationTestBase):
         self.session.flush()
         r = self.app.get('/test_filter_list?int_col=1', expect_errors=True)
         data = json.loads(r.body)
-        self.assertEqual(len(data['results']), 1)
+        self.assertEqual(len(data['items']), 1)
         r = self.app.get('/test_filter_list?int_col=2', expect_errors=True)
         data = json.loads(r.body)
-        self.assertEqual(len(data['results']), 0)
+        self.assertEqual(len(data['items']), 0)
 
     def test_page_is_default_when_page_param_is_not_an_integer(self):
         r = self.app.get('/test_paginated_list?page=adasdasdasd', expect_errors=True)
@@ -302,8 +302,8 @@ class BaseListCreateApiViewTestCase(IntegrationTestBase):
 
         r = self.app.get('/test_create/')
         json_data = json.loads(r.body)
-        self.assertIn('results', json_data)
-        self.assertEqual(len(json_data['results']), 2)
+        self.assertIn('items', json_data)
+        self.assertEqual(len(json_data['items']), 2)
 
 
 class BaseDestroyDetailApiViewTestCase(IntegrationTestBase):
@@ -584,7 +584,7 @@ class ColanderMixinTestCase(IntegrationTestBase):
         r = self.app.get('/test_colander_list', expect_errors=True)
         self.assertEqual(r.status_int, 200)
         data = json.loads(r.body)
-        self.assertEqual(len(data['results']), 0)
+        self.assertEqual(len(data['items']), 0)
 
     def test_get_list_model_exists_in_database(self):
         self.session.add(SampleModel(int_col=1, dec_col=3))
@@ -593,4 +593,4 @@ class ColanderMixinTestCase(IntegrationTestBase):
         r = self.app.get('/test_colander_list', expect_errors=True)
         self.assertEqual(r.status_int, 200)
         data = json.loads(r.body)
-        self.assertEqual(len(data['results']), 2)
+        self.assertEqual(len(data['items']), 2)

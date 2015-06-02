@@ -1,4 +1,5 @@
 from datetime import datetime
+
 from sqlalchemy import Column, Integer, DateTime, Boolean
 from sqlalchemy.ext.declarative import declared_attr
 

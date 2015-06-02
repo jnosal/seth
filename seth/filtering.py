@@ -17,7 +17,7 @@ class LookupParam(object):
 class Filter(object):
     lookup = ''
 
-    def __init__(self, name=None, required=False, lookup=None, **kwargs):
+    def __init__(self, name=None, required=False, lookup=None, **kw):
         self.name = name
         self.required = required
         self.lookup = lookup if lookup else self.lookup
@@ -52,7 +52,7 @@ class BooleanFilter(Filter):
             'true': True,
             'false': False,
         }
-        if isinstance(value, str) and value.lower() in value_map:
+        if isinstance(value, (unicode, str)) and value.lower() in value_map:
             return value_map.get(value.lower(), bool(value))
 
         raise AttributeError
@@ -87,8 +87,8 @@ class BaseDateTimeFilter(Filter):
     lookup = '__eq__'
     date_fmt = None
 
-    def __init__(self, name=None, required=False, lookup=None, **kwargs):
-        super(BaseDateTimeFilter, self).__init__(name, required, lookup, **kwargs)
+    def __init__(self, name=None, required=False, lookup=None, **kw):
+        super(BaseDateTimeFilter, self).__init__(name, required, lookup, **kw)
         assert self.date_fmt
 
 
@@ -149,6 +149,7 @@ class BaseFilterFactory(object):
     def get_sort_by_and_order(self, request):
         sort_by = request.params.get('sort_by', '')
         sort_by = sort_by.split(',', 1)[0]
+
         if not sort_by in self.filters:
             sort_by = ''
 
@@ -163,6 +164,7 @@ class BaseFilterFactory(object):
 
     def apply(self, request, *args, **kwargs):
         qs = self.qs
+
         if not self.filters:
             return qs
 
