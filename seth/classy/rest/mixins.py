@@ -120,7 +120,8 @@ class CreateResourceMixin(object):
     def created(self, instance):
         self.request.response.status_int = HTTPCreated.code
         return {
-            'status': ResponseStatus.CREATED
+            'status': ResponseStatus.CREATED,
+            'object': instance
         }
 
     def prepare_serialized_data(self, data):
@@ -191,7 +192,7 @@ class DeleteResourceMixin(RetrieveResourceMixin):
     def deleted(self, instance):
         self.request.response.status_int = HTTPOk.code
         return {
-            'status': ResponseStatus.DELETED
+            'status': ResponseStatus.DELETED,
         }
 
     def remove(self, **kwargs):
@@ -214,7 +215,8 @@ class PatchResourceMixin(RetrieveResourceMixin):
     def patched(self, instance):
         self.request.response.status_int = HTTPOk.code
         return {
-            'status': ResponseStatus.PATCHED
+            'status': ResponseStatus.PATCHED,
+            'object': instance
         }
 
     def modify(self, **kwargs):
@@ -247,7 +249,8 @@ class UpdateResourceMixin(RetrieveResourceMixin):
         self.request.response.status_int = HTTPOk.code
 
         return {
-            'status': ResponseStatus.UPDATED
+            'status': ResponseStatus.UPDATED,
+            'object': instance
         }
 
     def update(self, **kwargs):
