@@ -30,15 +30,18 @@ class Filter(object):
         if value in [(), [], {}, '', None]:
             return qs
 
+        # value we are filtering against
         value = self.prepare_value(value)
 
         # Get sqlalchemy InstrumentedAttribute
         column = getattr(model, param)
-        # Get column attribute to filter against
-        lparam = LookupParam(self.lookup, value)
 
-        f = getattr(column, self.lookup)(lparam.get_lookup())
-        return qs.filter(f)
+        # Get column attribute to filter against
+        # most of the time its just value
+        lookup_value = LookupParam(self.lookup, value).get_lookup()
+
+        filter_ = getattr(column, self.lookup)(lookup_value)
+        return qs.filter(filter_)
 
 
 class BooleanFilter(Filter):
