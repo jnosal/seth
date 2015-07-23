@@ -16,3 +16,8 @@ Seth
 Documentation
 =====
 http://seth.readthedocs.org/en/latest/
+
+
+Example
+=====
+https://github.com/jnosal/eventlog
