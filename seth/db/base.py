@@ -7,7 +7,7 @@ from seth.decorators import classproperty
 from seth.db.managers import BaseManager
 
 
-class PlainModelMixin(object):
+class Model(object):
 
     json_included = []
     json_excluded = []
@@ -41,7 +41,7 @@ class PlainModelMixin(object):
         for el, val in vars(self).iteritems():
             if not el.startswith('_') and not el in self.json_excluded:
 
-                if isinstance(val, BaseModelMixin):
+                if isinstance(val, Model):
                     data[el] = val.__json__()
                 else:
                     data[el] = val
@@ -55,7 +55,7 @@ class PlainModelMixin(object):
         return self.__json__(request=None)
 
 
-class BaseModelMixin(PlainModelMixin):
+class TimeStampedModel(Model):
 
     @declared_attr
     def created_at(self):

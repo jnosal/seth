@@ -4,7 +4,7 @@ from sqlalchemy.orm.query import Query
 from pyramid.httpexceptions import HTTPCreated, HTTPOk
 
 from seth import db
-from seth.db import mixins as db_mixins
+from seth.db import base as db_mixins
 from seth.classy.rest.utils import ResponseStatus
 
 
@@ -57,7 +57,7 @@ class ColanderSchemaMixin(BaseSchemaMixin):
         if isinstance(data, Query):
             data = [model.to_dict() for model in data.all()]
 
-        if isinstance(data, db_mixins.PlainModelMixin):
+        if isinstance(data, db_mixins.Model):
             data = data.to_dict()
 
         return data

@@ -8,10 +8,10 @@ from sqlalchemy.orm import scoped_session, sessionmaker
 from sqlalchemy.ext.declarative.api import declarative_base
 
 from seth import db
-from seth.db.mixins import BaseModelMixin
+from seth.db.base import Model
 
 
-Base = declarative_base(cls=BaseModelMixin)
+Base = declarative_base(cls=Model)
 
 
 # Basic model definition

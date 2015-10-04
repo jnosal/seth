@@ -6,7 +6,7 @@ from seth.paginator import paginate
 
 class BaseManager(object):
     """ Proxy manager for all models created as subclasses of
-    `*seth.db.mixins.PlainModelMixin`. Provides basic crud interface
+    `*seth.db.base.Model`. Provides basic crud interface
     and couple of utility functions
 
     For example:

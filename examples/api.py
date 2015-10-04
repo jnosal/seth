@@ -11,10 +11,10 @@ from marshmallow import Schema, fields
 from seth import db
 from seth import filtering
 from seth.classy.rest import generics
-from seth.db.mixins import BaseModelMixin
+from seth.db.base import TimeStampedModel
 
 
-Base = declarative_base(cls=BaseModelMixin)
+Base = declarative_base(cls=TimeStampedModel)
 
 
 # Basic model definition
@@ -28,7 +28,7 @@ class SuperModelFilters(filtering.FilterFactory):
     string_column = filtering.CharFilter()
 
 
-# Basic schema definition - BaseModelMixin predefines four fields:
+# Basic schema definition - TimeStampedModel predefines four fields:
 # id, is_deleted, created_at, updated_at
 class SuperModelSchema(Schema):
     id = fields.Integer()

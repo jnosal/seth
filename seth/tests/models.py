@@ -4,11 +4,11 @@ from __future__ import absolute_import
 import sqlalchemy as sa
 from sqlalchemy.ext.declarative import declarative_base, declared_attr
 
-from seth.db.mixins import BaseModelMixin
+from seth.db.base import TimeStampedModel
 from seth.db.managers import BaseManager, TenantManager
 
 
-Base = declarative_base(cls=BaseModelMixin)
+Base = declarative_base(cls=TimeStampedModel)
 
 
 class Tenant(Base):
