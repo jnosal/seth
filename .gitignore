@@ -28,3 +28,4 @@ logs
 MANIFEST
 
 env/
+venv/

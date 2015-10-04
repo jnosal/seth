@@ -1,5 +1,5 @@
 from pyramid.response import Response
-from pyramid.httpexceptions import HTTPError, HTTPOk
+from pyramid.httpexceptions import HTTPNotImplemented, HTTPOk
 
 from seth.classy.base import QuerySetMixin
 
@@ -16,7 +16,7 @@ class ExportResource(QuerySetMixin):
 
     def run_exporter(self):
         if not self.template:
-            raise HTTPError
+            raise HTTPNotImplemented(u"Template not configured")
 
         qs = self.get_queryset()
         # if no queryset is predefined export
