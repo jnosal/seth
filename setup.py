@@ -10,7 +10,7 @@ requires = [
 
 
 test_requires = [
-    'mock==1.0',
+    'mock==1.0.1',
     'nose',
     'webtest',
     'xhtml2pdf==0.0.5',
