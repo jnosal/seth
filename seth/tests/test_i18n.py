@@ -10,12 +10,6 @@ class I18nTestCase(UnitTestBase):
         handler = i18n.JSTranslationsHandler()
         self.assertRaises(IOError, lambda: handler.pofile_to_js('/tmp/i_dont_exist', 'en'))
 
-    def test_inappropriate_contents_provided_for_locale(self):
-        handler = i18n.JSTranslationsHandler()
-        open_ = mock.mock_open(read_data="asd")
-        with mock.patch('__builtin__.open', open_):
-            self.assertRaises(Exception, lambda: handler.pofile_to_js('/tmp/i_dont_exist', 'en'))
-
     def test_proper_pofile_provided(self):
         handler = i18n.JSTranslationsHandler()
         read_data = '''
